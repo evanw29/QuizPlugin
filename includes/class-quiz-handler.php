@@ -3,14 +3,17 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+//Quiz Object
 class Quiz_Handler {
     private $wpdb;
     private $tables;
     
+    //Create quiz object
     public function __construct() {
         global $wpdb;
         $this->wpdb = $wpdb;
         
+        //initialize array with all table names as they appear in phpMyAdmin
         $this->tables = array(
             'quiz' => $wpdb->prefix . 'Quiz',
             'questions' => $wpdb->prefix . 'Questions',
@@ -19,7 +22,10 @@ class Quiz_Handler {
         );
     }
     
+    //Pull questions from db 
     public function get_questions_with_answers() {
+
+        //Get all questions in the wp_Questions table, ignore personal category for now
         $questions = $this->wpdb->get_results(
             "SELECT q.QuestionID, q.Prompt, q.question_Type, q.Category,
                     a.AnswerID, a.answer_Text
@@ -30,7 +36,10 @@ class Quiz_Handler {
         );
         
         $structured_questions = array();
+        
+        //Go through each question and add it to the new array which containt all question info for each question
         foreach ($questions as $row) {
+            //set all previously unset questions into array defined fields
             if (!isset($structured_questions[$row->QuestionID])) {
                 $structured_questions[$row->QuestionID] = array(
                     'id' => $row->QuestionID,
@@ -40,6 +49,8 @@ class Quiz_Handler {
                     'answers' => array()
                 );
             }
+
+            //Get all answers for each question and put them into similar array
             if ($row->AnswerID) {
                 $structured_questions[$row->QuestionID]['answers'][] = array(
                     'id' => $row->AnswerID,
@@ -50,30 +61,19 @@ class Quiz_Handler {
         return $structured_questions;
     }
     
+    //Save responses in phpMyAdmin wp_Responses table
     public function save_responses($user_id, $responses) {
-        error_log('Starting save_responses method');
-        error_log('User ID: ' . $user_id);
-        error_log('Responses: ' . print_r($responses, true));
-    
+        
+        //Empty response case
         if (!is_array($responses) || empty($responses)) {
             error_log('Quiz save error: Invalid responses');
             return false;
         }
     
-        // Log table names for debugging
-        error_log('Table names: ' . print_r($this->tables, true));
-    
         $this->wpdb->query('START TRANSACTION');
         
         try {
-            // Verify quiz table exists
-            $table_exists = $this->wpdb->get_var("SHOW TABLES LIKE '{$this->tables['quiz']}'");
-            if (!$table_exists) {
-                throw new Exception("Quiz table does not exist: {$this->tables['quiz']}");
-            }
-    
-            // Insert quiz entry with debug logging
-            error_log('Attempting to insert quiz entry');
+            //Insert quiz entry into wp_Quiz in db, ignore techID for now
             $quiz_insert_result = $this->wpdb->insert(
                 $this->tables['quiz'],
                 array(
@@ -84,30 +84,28 @@ class Quiz_Handler {
                 array('%s', '%d', '%d')
             );
     
-            error_log('Quiz insert result: ' . var_export($quiz_insert_result, true));
-            error_log('Last DB error: ' . $this->wpdb->last_error);
-    
             if ($quiz_insert_result === false) {
                 throw new Exception('Failed to create quiz entry: ' . $this->wpdb->last_error);
             }
     
+            //Pull newly created quiz_id entry from wp_Quiz
             $quiz_id = $this->wpdb->insert_id;
-            error_log('Quiz ID generated: ' . $quiz_id);
     
-            // Process each response
+            //Parse each response 
             foreach ($responses as $question_id => $answer_ids) {
+                //Get real question ID for response
                 $question_id = absint($question_id);
-                error_log("Processing question ID: {$question_id}");
-    
+                
+                //Convert to array to preserve checkbox question types
                 if (!is_array($answer_ids)) {
                     $answer_ids = array($answer_ids);
                 }
-    
+                
+                //Go through each response (for each question)
                 foreach ($answer_ids as $answer_id) {
                     $answer_id = absint($answer_id);
-                    error_log("Processing answer ID: {$answer_id}");
     
-                    // Insert response with debug logging
+                    //Insert response in wp_Response
                     $response_insert_result = $this->wpdb->insert(
                         $this->tables['responses'],
                         array(
@@ -118,20 +116,20 @@ class Quiz_Handler {
                         ),
                         array('%d', '%d', '%d', '%d')
                     );
-    
-                    error_log('Response insert result: ' . var_export($response_insert_result, true));
-                    error_log('Last DB error: ' . $this->wpdb->last_error);
-    
+                    
+                    //Could not insert response error case
                     if ($response_insert_result === false) {
                         throw new Exception('Failed to save response: ' . $this->wpdb->last_error);
                     }
                 }
             }
-    
+            
+            //Complete transaction
             $this->wpdb->query('COMMIT');
             error_log('Transaction committed successfully');
             return $quiz_id;
-    
+            
+        //Do not commit if error occurs
         } catch (Exception $e) {
             $this->wpdb->query('ROLLBACK');
             error_log('Quiz save error: ' . $e->getMessage());
@@ -142,12 +140,14 @@ class Quiz_Handler {
     }
 }
 
+//Initialize Quiz handler
 $quiz_handler = new Quiz_Handler();
 
 function display_quiz_form() {
     global $quiz_handler;
     $questions = $quiz_handler->get_questions_with_answers();
 
+    //Create quiz html container 
     ob_start();
     ?>
     <div class="quiz-form-container">

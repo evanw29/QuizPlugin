@@ -1,23 +1,25 @@
 jQuery(document).ready(function($) {
+
+    //When the submit button is pressed, collect and send data to db
     $('#quiz-form').on('submit', function(e) {
         e.preventDefault();
-        console.log('Form submitted'); // Debug log
-        
+
         const form = $(this);
         const formMessage = $('#form-message');
         const submitButton = form.find('button[type="submit"]');
         
-        // Disable submit button to prevent double submission
+        //Disable submit button to prevent double submission
         submitButton.prop('disabled', true);
         
-        // Collect all responses
+        //Collect all responses
         let responses = {};
         
-        // Process each question group
+        //Process each question group
         $('.question-group').each(function() {
             const questionId = $(this).data('question-id');
             const inputs = $(this).find('input:checked, select, input[type="text"]');
             
+            //Get multiple answers in case of checkbox question type
             if (inputs.length) {
                 if (inputs.is(':checkbox')) {
                     responses[questionId] = [];
@@ -32,7 +34,7 @@ jQuery(document).ready(function($) {
 
         console.log('Responses collected:', responses); // Debug log
 
-        // Send AJAX request
+        //Send AJAX request
         $.ajax({
             url: quizAjax.ajaxurl,
             type: 'POST',

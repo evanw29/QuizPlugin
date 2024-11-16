@@ -9,20 +9,20 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Include the Quiz Handler class
+//Include the Quiz Handler class
 require_once plugin_dir_path(__FILE__) . 'includes/class-quiz-handler.php';
 
-// Initialize the plugin
+//Initialize the plugin
 function init_quiz_plugin() {
     global $quiz_handler;
     $quiz_handler = new Quiz_Handler();
     
-    // Register shortcode
+    //Register shortcode 'quiz_form' for use inside of WP page
     add_shortcode('quiz_form', 'display_quiz_form');
 }
 add_action('init', 'init_quiz_plugin');
 
-// Enqueue necessary scripts
+//Enqueue necessary scripts
 function enqueue_quiz_scripts() {
     wp_enqueue_style(
         'quiz-style',
@@ -44,7 +44,7 @@ function enqueue_quiz_scripts() {
 }
 add_action('wp_enqueue_scripts', 'enqueue_quiz_scripts');
 
-// AJAX handler for form submission
+//AJAX handler for form submission
 function handle_quiz_submission() {
     error_log('Quiz submission received'); // Debug log
     
@@ -70,7 +70,7 @@ function handle_quiz_submission() {
         return;
     }
     
-    // Hardcode user_id to 1
+    //Hardcode user_id to 1 for now (anon user)
     $user_id = 1;
     $responses = $_POST['responses'];
     

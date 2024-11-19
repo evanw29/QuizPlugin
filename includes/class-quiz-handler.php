@@ -18,7 +18,8 @@ class Quiz_Handler {
             'quiz' => $wpdb->prefix . 'Quiz',
             'questions' => $wpdb->prefix . 'Questions',
             'answers' => $wpdb->prefix . 'Answers',
-            'responses' => $wpdb->prefix . 'Responses'
+            'responses' => $wpdb->prefix . 'Responses',
+            'users' => $wpdb->prefix . 'quizUsers'
         );
     }
     
@@ -60,9 +61,41 @@ class Quiz_Handler {
         }
         return $structured_questions;
     }
+
+    public function get_personal_questions() {
+        $questions = $this->wpdb->get_results(
+            "SELECT q.QuestionID, q.Prompt, q.question_Type,
+                    a.AnswerID, a.answer_Text
+             FROM {$this->tables['questions']} q
+             LEFT JOIN {$this->tables['answers']} a ON q.QuestionID = a.QuestionID
+             WHERE q.QuestionID IN (23, 24, 25, 28, 29, 30, 31)
+             ORDER BY FIELD(q.QuestionID, 23, 30, 24, 25, 28, 29, 31)"
+        );
+    
+        // Structure the data to group answers with their questions
+        $structured_questions = array();
+        foreach ($questions as $row) {
+            if (!isset($structured_questions[$row->QuestionID])) {
+                $structured_questions[$row->QuestionID] = (object)[
+                    'QuestionID' => $row->QuestionID,
+                    'Prompt' => $row->Prompt,
+                    'question_Type' => $row->question_Type,
+                    'answers' => array()
+                ];
+            }
+            if ($row->AnswerID) {
+                $structured_questions[$row->QuestionID]->answers[] = (object)[
+                    'AnswerID' => $row->AnswerID,
+                    'answer_Text' => $row->answer_Text
+                ];
+            }
+        }
+    
+        return array_values($structured_questions);
+    }
     
     //Save responses in phpMyAdmin wp_Responses table
-    public function save_responses($user_id, $responses) {
+    public function save_responses($responses, $personal_info = null) {
         
         //Empty response case
         if (!is_array($responses) || empty($responses)) {
@@ -72,7 +105,36 @@ class Quiz_Handler {
     
         $this->wpdb->query('START TRANSACTION');
         
+        //Default, Anonymous user case where no data is saved
+        $user_id = 1;
+
         try {
+
+            if ($personal_info !== null) {
+                $user_data = array(
+                    'first_name' => sanitize_text_field($personal_info[23]),
+                    'last_name' => sanitize_text_field($personal_info[30]),
+                    'email' => sanitize_email($personal_info[28]),
+                    'dob' => $personal_info[24],
+                    'province' => $personal_info[25],
+                    'phone_number' => sanitize_text_field($personal_info[29]),
+                    'gender' => $personal_info[31],
+                    'user_type' => 'senior'
+                );
+            
+                $user_insert_result = $this->wpdb->insert(
+                    $this->tables['users'],
+                    $user_data,
+                    array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+                );
+
+                if ($user_insert_result == false) {
+                    throw new Exception('Failed to create user');
+                }
+                
+                $user_id = $this->wpdb->insert_id;
+            }
+
             //Insert quiz entry into wp_Quiz in db, ignore techID for now
             $quiz_insert_result = $this->wpdb->insert(
                 $this->tables['quiz'],
@@ -126,7 +188,6 @@ class Quiz_Handler {
             
             //Complete transaction
             $this->wpdb->query('COMMIT');
-            error_log('Transaction committed successfully');
             return $quiz_id;
             
         //Do not commit if error occurs
@@ -154,10 +215,10 @@ function display_quiz_form() {
         <form id="quiz-form" class="quiz-form">
             <?php wp_nonce_field('quiz_ajax_nonce', 'quiz_nonce'); ?>
             
+            <!-- Regular Quiz Questions -->
             <?php foreach ($questions as $question): ?>
                 <div class="question-group" data-question-id="<?php echo esc_attr($question['id']); ?>">
                     <h3 class="question-prompt"><?php echo esc_html($question['prompt']); ?></h3>
-                    
                     <div class="answers-group">
                         <?php 
                         switch($question['type']) {
@@ -195,18 +256,6 @@ function display_quiz_form() {
                                 <?php endforeach;
                                 break;
                                 
-                            case 'Text':
-                                ?>
-                                <input 
-                                    type="text"
-                                    name="question_<?php echo esc_attr($question['id']); ?>"
-                                    id="question_<?php echo esc_attr($question['id']); ?>"
-                                    class="text-input"
-                                    required
-                                >
-                                <?php
-                                break;
-                                
                             default: // Multiple Choice
                                 foreach ($question['answers'] as $answer): ?>
                                     <div class="answer-option">
@@ -228,6 +277,25 @@ function display_quiz_form() {
                     </div>
                 </div>
             <?php endforeach; ?>
+
+            <!-- Save Data Question -->
+            <div class="question-group save-data-question">
+                <h3 class="question-prompt">Would you like to save your information for future reference?</h3>
+                <div class="answers-group">
+                    <div class="answer-option">
+                        <input type="radio" name="save_data" value="yes" id="save_data_yes" required>
+                        <label for="save_data_yes">Yes</label>
+                    </div>
+                    <div class="answer-option">
+                        <input type="radio" name="save_data" value="no" id="save_data_no">
+                        <label for="save_data_no">No</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personal Information Section (initially hidden) -->
+            <div id="personal-info-section" style="display: none">
+            </div>
             
             <button type="submit" class="submit-button">Submit Quiz</button>
         </form>

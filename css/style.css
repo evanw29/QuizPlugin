@@ -78,3 +78,22 @@
     border: 1px solid green;
     border-radius: 5px;
 }
+
+.question-group.error {
+    border-color: #ff0000;
+    background-color: #fff8f8;
+}
+
+.personal-info-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.error {
+    color: #ff0000;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ff0000;
+    border-radius: 5px;
+}

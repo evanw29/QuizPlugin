@@ -36,6 +36,7 @@ class Quiz_Handler {
              ORDER BY q.QuestionID, a.AnswerID"
         );
         
+        //create a structured array for easier parsing later
         $structured_questions = array();
         
         //Go through each question and add it to the new array which containt all question info for each question
@@ -62,7 +63,11 @@ class Quiz_Handler {
         return $structured_questions;
     }
 
+    //This is for pulling specifically the "personal" questions from the database. These
+    //questions are only to be asked if the user selects they want to save their data 
     public function get_personal_questions() {
+
+        //pull questions (qids are hardcoded from the database)
         $questions = $this->wpdb->get_results(
             "SELECT q.QuestionID, q.Prompt, q.question_Type,
                     a.AnswerID, a.answer_Text
@@ -72,7 +77,7 @@ class Quiz_Handler {
              ORDER BY FIELD(q.QuestionID, 23, 30, 24, 25, 28, 29, 31)"
         );
     
-        // Structure the data to group answers with their questions
+        //Structure the data to group answers with their questions
         $structured_questions = array();
         foreach ($questions as $row) {
             if (!isset($structured_questions[$row->QuestionID])) {
@@ -83,6 +88,7 @@ class Quiz_Handler {
                     'answers' => array()
                 ];
             }
+            //Get answers for each question
             if ($row->AnswerID) {
                 $structured_questions[$row->QuestionID]->answers[] = (object)[
                     'AnswerID' => $row->AnswerID,
@@ -109,7 +115,9 @@ class Quiz_Handler {
         $user_id = 1;
 
         try {
-
+            
+            //$personal_info is not empty, so therefore the user wishes to save their data,
+            //pull the info from those questions and sanitize the raw text for security.
             if ($personal_info !== null) {
                 $user_data = array(
                     'first_name' => sanitize_text_field($personal_info[23]),
@@ -121,17 +129,20 @@ class Quiz_Handler {
                     'gender' => $personal_info[31],
                     'user_type' => 'senior'
                 );
-            
+                
+                //Insert personal user data
                 $user_insert_result = $this->wpdb->insert(
                     $this->tables['users'],
                     $user_data,
                     array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
                 );
 
+                //user creation in database failed
                 if ($user_insert_result == false) {
                     throw new Exception('Failed to create user');
                 }
                 
+                //get auto created user_id from db for later use
                 $user_id = $this->wpdb->insert_id;
             }
 
@@ -145,7 +156,8 @@ class Quiz_Handler {
                 ),
                 array('%s', '%d', '%d')
             );
-    
+            
+            //quiz insertion in db failed
             if ($quiz_insert_result === false) {
                 throw new Exception('Failed to create quiz entry: ' . $this->wpdb->last_error);
             }
@@ -193,9 +205,6 @@ class Quiz_Handler {
         //Do not commit if error occurs
         } catch (Exception $e) {
             $this->wpdb->query('ROLLBACK');
-            error_log('Quiz save error: ' . $e->getMessage());
-            error_log('Last SQL query: ' . $this->wpdb->last_query);
-            error_log('Last DB error: ' . $this->wpdb->last_error);
             throw $e;
         }
     }
@@ -208,7 +217,7 @@ function display_quiz_form() {
     global $quiz_handler;
     $questions = $quiz_handler->get_questions_with_answers();
 
-    //Create quiz html container 
+    //Create quiz html container including debugging info in html console.
     ob_start();
     ?>
     <div class="quiz-form-container">

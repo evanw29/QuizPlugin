@@ -54,10 +54,10 @@ jQuery(document).ready(function($) {
         
         submitButton.prop('disabled', true);
         
-        // Collect all responses
+        //create responses array
         let responses = {};
         
-        // Regular quiz questions
+        //gather regular question responses
         $('.question-group:not(.save-data-question)').each(function() {
             const questionId = $(this).data('question-id');
             const inputs = $(this).find('input:checked, select, input[type="text"]');
@@ -76,14 +76,14 @@ jQuery(document).ready(function($) {
 
         console.log('Collected regular responses:', responses);
 
-        // Add personal info if saving data
+        //Add personal info if saving data to user
         if (saveData) {
             console.log('Processing personal info fields');
             const personalInfoFields = $('.personal-info');
             let isValid = true;
             
             console.log('Found personal info fields:', personalInfoFields.length);
-
+            
             personalInfoFields.each(function() {
                 const $input = $(this);
                 const questionId = $input.closest('.question-group').data('question-id');

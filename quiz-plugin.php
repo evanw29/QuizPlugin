@@ -54,6 +54,7 @@ function handle_get_personal_questions() {
     global $quiz_handler;
     $questions = $quiz_handler->get_personal_questions();
     
+    //Display the personal info questions, divided by question type.
     ob_start();
     ?>
     <div class="personal-info-section">
@@ -139,14 +140,12 @@ function handle_quiz_submission() {
     
     //Check if answers were answered by user
     if (!isset($_POST['responses']) || !is_array($_POST['responses'])) {
-        error_log('Quiz error: No responses or invalid format');
         wp_send_json_error('No valid responses received');
         return;
     }
 
     global $quiz_handler;
     if (!$quiz_handler) {
-        error_log('Quiz error: Quiz handler not initialized');
         wp_send_json_error('System error: Quiz handler not initialized');
         return;
     }
@@ -168,13 +167,11 @@ function handle_quiz_submission() {
         
         //Message display on WP page of successful quiz completion and save
         if ($quiz_id) {
-            error_log('Quiz saved successfully with ID: ' . $quiz_id);
             wp_send_json_success(array(
                 'message' => 'Thank you! Your responses have been saved.',
                 'quiz_id' => $quiz_id
             ));
         } else {
-            error_log('Quiz error: Failed to get quiz ID after save');
             wp_send_json_error('There was an error saving your responses. Please try again.');
         }
     } catch (Exception $e) {

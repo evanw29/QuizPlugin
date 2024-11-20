@@ -13,6 +13,16 @@ if (!defined('ABSPATH')) {
 //Include the Quiz Handler class
 require_once plugin_dir_path(__FILE__) . 'includes/class-quiz-handler.php';
 
+//Only load the admin dashboard code if an admin is present on site
+function init_admin_dashboard(){
+    if (is_admin()) {
+        require_once plugin_dir_path(__FILE__) . 'includes/class-admin-dashboard.php';
+        $quiz_admin_dashboard = new Admin_Dashboard();
+    }
+}
+add_action('init', 'init_admin_dashboard');
+
+
 //Initialize the plugin
 function init_quiz_plugin() {
     global $quiz_handler;

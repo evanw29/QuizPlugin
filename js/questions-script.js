@@ -1,10 +1,11 @@
 jQuery(document).ready(function($) {
     console.log('Quiz script loaded');
 
-    // Handle save data question visibility and personal info loading
+    //Handle save data question visibility and personal info loading
     const saveDataRadios = $('input[name="save_data"]');
     console.log('Save data radio buttons found:', saveDataRadios.length);
 
+    //display personals
     saveDataRadios.on('change', function() {
         console.log('Radio button changed');
         const saveData = $(this).val() === 'yes';
@@ -12,6 +13,7 @@ jQuery(document).ready(function($) {
         const personalInfoSection = $('#personal-info-section');
         console.log('Personal info section found:', personalInfoSection.length);
         
+        //User wants to save their data case
         if (saveData) {
             console.log('Attempting to fetch personal questions');
             $.ajax({
@@ -133,7 +135,6 @@ jQuery(document).ready(function($) {
             });
             
             console.log('Personal info validation:', isValid);
-            console.log('Final responses with personal info:', responses);
             
             if (!isValid) {
                 formMessage.html('<div class="error">Please fill in all required fields.</div>');
@@ -148,7 +149,7 @@ jQuery(document).ready(function($) {
             responses: responses
         });
 
-        // Submit form data
+        //Submit form data to database
         $.ajax({
             url: quizAjax.ajaxurl,
             type: 'POST',

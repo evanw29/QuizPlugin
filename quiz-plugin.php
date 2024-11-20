@@ -23,7 +23,7 @@ function init_quiz_plugin() {
 }
 add_action('init', 'init_quiz_plugin');
 
-//Enqueue necessary scripts
+//Enqueue necessary scripts in filespace
 function enqueue_quiz_scripts() {
     wp_enqueue_style(
         'quiz-style',
@@ -43,10 +43,7 @@ function enqueue_quiz_scripts() {
         'nonce' => wp_create_nonce('quiz_ajax_nonce')
     ));
 }
-//prepare actions for displaying and saving quizzes 
 add_action('wp_enqueue_scripts', 'enqueue_quiz_scripts');
-add_action('wp_ajax_get_personal_questions', 'handle_get_personal_questions');
-add_action('wp_ajax_nopriv_get_personal_questions', 'handle_get_personal_questions');
 
 function handle_get_personal_questions() {
     check_ajax_referer('quiz_ajax_nonce', 'nonce');
@@ -58,12 +55,13 @@ function handle_get_personal_questions() {
     ob_start();
     ?>
     <div class="personal-info-section">
-        <h3>Personal Information</h3>
+        <h3>Please tell us some information about yourself</h3>
         <?php foreach ($questions as $question): ?>
             <div class="question-group" data-question-id="<?php echo esc_attr($question->QuestionID); ?>">
                 <label><?php echo esc_html($question->Prompt); ?></label>
                 <div class="answers-group">
                 <?php
+                //switch case for each question type
                 switch($question->question_Type) {
                     case 'ComboBox':
                         ?>
@@ -101,16 +99,18 @@ function handle_get_personal_questions() {
                         break;
                     
                     default:
-                        // Handle different text input types based on question ID
+                        //Handle different text input types based on question ID
                         $input_type = 'text';
                         $extra_attrs = 'required';
-                        
-                        if ($question->QuestionID == 24) { // Date of birth
+                        //Date of birth
+                        if ($question->QuestionID == 24) { 
                             $input_type = 'date';
                             $extra_attrs .= ' max="' . date('Y-m-d') . '"';
-                        } elseif ($question->QuestionID == 28) { // Email
+                        //Email
+                        } elseif ($question->QuestionID == 28) { 
                             $input_type = 'email';
-                        } elseif ($question->QuestionID == 29) { // Phone
+                        //Phone
+                        } elseif ($question->QuestionID == 29) { 
                             $input_type = 'tel';
                             $extra_attrs .= ' pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number"';
                         }
@@ -135,10 +135,13 @@ function handle_get_personal_questions() {
     wp_send_json_success(array('html' => ob_get_clean()));
 }
 
+add_action('wp_ajax_get_personal_questions', 'handle_get_personal_questions');
+add_action('wp_ajax_nopriv_get_personal_questions', 'handle_get_personal_questions');
+
 //AJAX handler for form submission
 function handle_quiz_submission() {
     
-    //Check if answers were answered by user
+    //Check if answers were answered by user (HTML data has been sent)
     if (!isset($_POST['responses']) || !is_array($_POST['responses'])) {
         wp_send_json_error('No valid responses received');
         return;
@@ -154,7 +157,7 @@ function handle_quiz_submission() {
     $personal_info = null;
     
     try {
-        
+        //question ids of personal questions in preexisting db. Check if they have been answered (user wants to save)
         $personal_fields = [23, 24, 25, 28, 29, 30, 31];
         foreach ($personal_fields as $field) {
             if (isset($responses[$field])) {
@@ -163,12 +166,13 @@ function handle_quiz_submission() {
             }
         }
 
+        //Save responses with or without personal questions.
         $quiz_id = $quiz_handler->save_responses( $responses, $personal_info);
         
         //Message display on WP page of successful quiz completion and save
         if ($quiz_id) {
             wp_send_json_success(array(
-                'message' => 'Thank you! Your responses have been saved.',
+                'message' => 'Thank you! Your responses are being calculated.',
                 'quiz_id' => $quiz_id
             ));
         } else {

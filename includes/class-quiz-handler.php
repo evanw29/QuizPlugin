@@ -1,4 +1,5 @@
 <?php
+//This file contains the quiz-handler class and its required functions with functionality to create, save, and pull from the wpdb
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -264,8 +265,8 @@ function display_quiz_form() {
                                     </div>
                                 <?php endforeach;
                                 break;
-                                
-                            default: // Multiple Choice
+                            // Multiple Choice    
+                            default: 
                                 foreach ($question['answers'] as $answer): ?>
                                     <div class="answer-option">
                                         <input 
@@ -287,7 +288,6 @@ function display_quiz_form() {
                 </div>
             <?php endforeach; ?>
 
-            <!-- Save Data Question -->
             <div class="question-group save-data-question">
                 <h3 class="question-prompt">Would you like to save your information for future reference?</h3>
                 <div class="answers-group">
@@ -302,7 +302,6 @@ function display_quiz_form() {
                 </div>
             </div>
 
-            <!-- Personal Information Section (initially hidden) -->
             <div id="personal-info-section" style="display: none">
             </div>
             

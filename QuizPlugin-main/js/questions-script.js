@@ -1,19 +1,19 @@
 jQuery(document).ready(function($) {
     console.log('Quiz script loaded');
 
-    //Handle save data question visibility and personal info loading
+    // Handle save data question visibility and personal info loading
     const saveDataRadios = $('input[name="save_data"]');
     console.log('Save data radio buttons found:', saveDataRadios.length);
 
-    //display personals
+    // Display personals
     saveDataRadios.on('change', function() {
         console.log('Radio button changed');
         const saveData = $(this).val() === 'yes';
         console.log('Save data value:', saveData);
         const personalInfoSection = $('#personal-info-section');
         console.log('Personal info section found:', personalInfoSection.length);
-        
-        //User wants to save their data case
+
+        // User wants to save their data case
         if (saveData) {
             console.log('Attempting to fetch personal questions');
             $.ajax({
@@ -48,22 +48,22 @@ jQuery(document).ready(function($) {
 
     $('#quiz-form').on('submit', function(e) {
         e.preventDefault();
-        
+
         const form = $(this);
         const saveData = $('input[name="save_data"]:checked').val() === 'yes';
         const submitButton = form.find('button[type="submit"]');
         const formMessage = $('#form-message');
-        
+
         submitButton.prop('disabled', true);
-        
-        //create responses array
+
+        // Create responses array
         let responses = {};
-        
-        //gather regular question responses
+
+        // Gather regular question responses
         $('.question-group:not(.save-data-question)').each(function() {
             const questionId = $(this).data('question-id');
-            const inputs = $(this).find('input:checked, select, input[type="text"]');
-            
+            const inputs = $(this).find('input:checked, select, input[type="text"], input[type="email"], input[type="date"], input[type="tel"]');
+
             if (inputs.length) {
                 if (inputs.is(':checkbox')) {
                     responses[questionId] = [];
@@ -78,18 +78,18 @@ jQuery(document).ready(function($) {
 
         console.log('Collected regular responses:', responses);
 
-        //Add personal info if saving data to user
+        // Add personal info if saving data to user
         if (saveData) {
             console.log('Processing personal info fields');
             const personalInfoFields = $('.personal-info');
             let isValid = true;
-            
+
             console.log('Found personal info fields:', personalInfoFields.length);
-            
+
             personalInfoFields.each(function() {
                 const $input = $(this);
                 const questionId = $input.closest('.question-group').data('question-id');
-                
+
                 console.log('Processing field:', {
                     questionId: questionId,
                     type: $input.attr('type') || $input.prop('tagName').toLowerCase(),
@@ -133,9 +133,9 @@ jQuery(document).ready(function($) {
                     }
                 }
             });
-            
+
             console.log('Personal info validation:', isValid);
-            
+
             if (!isValid) {
                 formMessage.html('<div class="error">Please fill in all required fields.</div>');
                 submitButton.prop('disabled', false);
@@ -149,7 +149,7 @@ jQuery(document).ready(function($) {
             responses: responses
         });
 
-        //Submit form data to database
+        // Submit form data to database
         $.ajax({
             url: quizAjax.ajaxurl,
             type: 'POST',
@@ -161,12 +161,12 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 console.log('Submission response received:', response);
                 if (response.success) {
-                    form.hide();
-                    formMessage.html('<div class="success">' + response.data.message + '</div>');
+                    // Redirect to recommendations page
+                    window.location.href = response.data.redirect_url;
                 } else {
                     formMessage.html('<div class="error">' + (response.data || 'An error occurred.') + '</div>');
+                    submitButton.prop('disabled', false);
                 }
-                submitButton.prop('disabled', false);
             },
             error: function(xhr, status, error) {
                 console.log('Submission error:', {

@@ -97,3 +97,30 @@
     border: 1px solid #ff0000;
     border-radius: 5px;
 }
+.table-filter form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.table-filter select,
+.table-filter input[type="text"],
+
+.table-filter .button {
+    margin: 0;
+    height: 30px;
+    line-height: 28px;
+    vertical-align: middle;
+    box-sizing: border-box;
+}
+
+.table-filter input[type="text"] {
+    padding: 0 8px;
+    min-height: 30px;
+}
+
+.table-filter .button {
+    height: 30px;
+    line-height: 28px;
+    padding: 0 10px;
+}

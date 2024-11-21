@@ -144,40 +144,45 @@ class Admin_Dashboard {
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
 
         <!-- Always show table view form at top -->
-        <?php $this->render_table_view(); ?>
-
-        <!-- Default view with recent quizzes -->
-        <div class="quiz-stats-cards">
-            <div class="stat-card">
-                <h3>Recent Quizzes</h3>
-                <table class="wp-list-table widefat fixed striped">
-                    <thead>
-                        <tr>
-                            <th>Quiz ID</th>
-                            <th>Date</th>
-                            <th>User ID</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php 
-                    if ($recent_quizzes && !empty($recent_quizzes)) {
-                        foreach ($recent_quizzes as $quiz): ?>
+        <?php $this->render_table_view(); 
+    
+        //Only display recent quizzes if another table is not selected. This is the defautlt view
+        if (!isset($_GET['table']) || empty($_GET['table'])){ 
+            ?>        
+            <div class="quiz-stats-cards">
+                <div class="stat-card">
+                    <h3>Recent Quizzes</h3>
+                    <table class="wp-list-table widefat fixed striped">
+                        <thead>
                             <tr>
-                                <td><?php echo esc_html($quiz->QuizID); ?></td>
-                                <td><?php echo esc_html($quiz->Date); ?></td>
-                                <td><?php echo esc_html($quiz->user_id); ?></td>
+                                <th>Quiz ID</th>
+                                <th>Date</th>
+                                <th>User ID</th>
                             </tr>
-                        <?php endforeach;
-                    } else {
-                        echo '<tr><td colspan="3">No quizzes found</td></tr>';
-                    }
-                    ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        <?php 
+                        //recent populate recent quizzes table
+                        if ($recent_quizzes && !empty($recent_quizzes)) {
+                            foreach ($recent_quizzes as $quiz): ?>
+                                <tr>
+                                    <td><?php echo esc_html($quiz->QuizID); ?></td>
+                                    <td><?php echo esc_html($quiz->Date); ?></td>
+                                    <td><?php echo esc_html($quiz->user_id); ?></td>
+                                </tr>
+                            <?php endforeach;
+                        //no recent quizzes case
+                        } else {
+                            echo '<tr><td colspan="3">No quizzes found</td></tr>';
+                        }
+                        ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
     <?php
+        }
     }
 
     //This function handles rendering the table view selector in the quiz stats module
@@ -196,7 +201,7 @@ class Admin_Dashboard {
         <form method="get">
             <input type="hidden" name="page" value="quiz-statistics">
             <select name="table">
-                <option value="">Select a table</option>
+                <option value="">Recent Quizzes</option>
                 <option value="quiz" <?php selected($selected_table, 'quiz'); ?>>Quiz Table</option>
                 <option value="questions" <?php selected($selected_table, 'questions'); ?>>Questions Table</option>
                 <option value="answers" <?php selected($selected_table, 'answers'); ?>>Answers Table</option>

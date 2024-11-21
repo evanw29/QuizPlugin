@@ -188,6 +188,8 @@ class Admin_Dashboard {
         // Add these lines for filter values
         $filter_column = isset($_GET['filter_column']) ? sanitize_text_field($_GET['filter_column']) : '';
         $filter_value = isset($_GET['filter_value']) ? sanitize_text_field($_GET['filter_value']) : '';
+        //This is for deciding on equals or contains filter types
+        $filter_type = isset($_GET['filter_type']) ? sanitize_text_field($_GET['filter_type']) : 'contains';
 
         ?>
         <!-- Table Selection Form -->
@@ -219,6 +221,7 @@ class Admin_Dashboard {
                         <input type="hidden" name="page" value="quiz-statistics">
                         <input type="hidden" name="table" value="<?php echo esc_attr($selected_table); ?>">
                         
+                        <!--Filter by search -->
                         <select name="filter_column">
                             <option value="">Select Column to Filter</option>
                             <?php foreach ($columns as $column): ?>
@@ -229,12 +232,21 @@ class Admin_Dashboard {
                             <?php endforeach; ?>
                         </select>
                         
+                        <!--Add the filter type modifier element-->
+                        <select name="filter_type">
+                            <option value="contains" <?php selected($filter_type, 'contains'); ?>>Contains</option>
+                            <option value="equals" <?php selected($filter_type, 'equals'); ?>>Equals</option>
+                        </select>
+                        
+                        <!-- Filter textbox-->
                         <input type="text" name="filter_value" 
                                value="<?php echo esc_attr($filter_value); ?>" 
                                placeholder="Enter search term">
                         
+                        <!--Search Button-->
                         <input type="submit" class="button" value="Filter">
                         
+                        <!-- Add clear filter button when a value is entered into filter textbox-->
                         <?php if ($filter_column && $filter_value): ?>
                             <a href="?page=quiz-statistics&table=<?php echo esc_attr($selected_table); ?>" 
                                class="button">Clear Filter</a>
@@ -244,10 +256,19 @@ class Admin_Dashboard {
                 <?php
             }
 
-            // Get table data
+            // Get queried table data
             if ($filter_column && $filter_value) {
-                $where = array("$filter_column LIKE '%$filter_value%'");
-                $table_data = $this->query_creator($selected_table, '*', $where);
+
+                //Find filter type and adjust query accordingly (contains or equals search)
+                if ($filter_type == "contains")
+                {
+                    $filter = array("$filter_column LIKE '%$filter_value%'");
+                } else if ($filter_type == "equals"){
+                    $filter = array("LOWER($filter_column) = LOWER('$filter_value')");
+                }
+                
+                //create query
+                $table_data = $this->query_creator($selected_table, '*', $filter);
             } else {
                 $table_data = $this->pull_table($selected_table);
             }

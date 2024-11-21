@@ -19,9 +19,9 @@ class Admin_Dashboard {
         );
 
         add_action('admin_menu', array($this, 'add_admin_menu'));
-        //add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
     }
 
+    //This function returns a unfiltered view of an entire given table
     public function pull_table($table){
         global $wpdb;
 
@@ -33,11 +33,12 @@ class Admin_Dashboard {
         return $table_data;
     }
 
+    //This function returns an array of all columns for a given table
     public function get_columns($table){
 
         global $wpdb;
     
-        // Get the first row with DESCRIBE to get column info
+        //Get column names using query
         $columns = $wpdb->get_results("DESCRIBE $table");
         
         if (!$columns) {
@@ -45,7 +46,7 @@ class Admin_Dashboard {
             return array();
         }
     
-    return $columns;
+        return $columns;
     }
 
     public function query_creator($table, $column="*", $value=null, $sort_col=null, $sort_mode=null, $join=null, $limit=null) {
@@ -85,6 +86,7 @@ class Admin_Dashboard {
         return $results;
     }
 
+    //This function is responsible for adding the Quiz Stats menu in the Wordpress Admin sidebar
     public function add_admin_menu() {
         add_menu_page(
             'Quiz Statistics',
@@ -96,6 +98,7 @@ class Admin_Dashboard {
             30
         );
     }
+
     public function render_dashboard() {
 
         //Block non admins from viewing this page
@@ -181,7 +184,11 @@ class Admin_Dashboard {
     public function render_table_view() {
         // Get selected table from dropdown
         $selected_table = isset($_GET['table']) ? sanitize_text_field($_GET['table']) : '';
-    
+        
+        // Add these lines for filter values
+        $filter_column = isset($_GET['filter_column']) ? sanitize_text_field($_GET['filter_column']) : '';
+        $filter_value = isset($_GET['filter_value']) ? sanitize_text_field($_GET['filter_value']) : '';
+
         ?>
         <!-- Table Selection Form -->
         <form method="get">
@@ -200,14 +207,54 @@ class Admin_Dashboard {
         <?php
         // Display selected table contents only if a table is selected
         if ($selected_table && array_key_exists($selected_table, $this->tables)) {
-            // Get columns using your get_columns function
+
+            // Get columns using get_columns function
             $columns = $this->get_columns($this->tables[$selected_table]);
             
+            //If the columns were found, allow table filtering.
+            if ($columns) {
+                ?>
+                <div class="table-filter" style="margin-top: 20px;">
+                    <form method="get">
+                        <input type="hidden" name="page" value="quiz-statistics">
+                        <input type="hidden" name="table" value="<?php echo esc_attr($selected_table); ?>">
+                        
+                        <select name="filter_column">
+                            <option value="">Select Column to Filter</option>
+                            <?php foreach ($columns as $column): ?>
+                                <option value="<?php echo esc_attr($column->Field); ?>" 
+                                        <?php selected($filter_column, $column->Field); ?>>
+                                    <?php echo esc_html($column->Field); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        
+                        <input type="text" name="filter_value" 
+                               value="<?php echo esc_attr($filter_value); ?>" 
+                               placeholder="Enter search term">
+                        
+                        <input type="submit" class="button" value="Filter">
+                        
+                        <?php if ($filter_column && $filter_value): ?>
+                            <a href="?page=quiz-statistics&table=<?php echo esc_attr($selected_table); ?>" 
+                               class="button">Clear Filter</a>
+                        <?php endif; ?>
+                    </form>
+                </div>
+                <?php
+            }
+
             // Get table data
-            $table_data = $this->pull_table($selected_table);
+            if ($filter_column && $filter_value) {
+                $where = array("$filter_column LIKE '%$filter_value%'");
+                $table_data = $this->query_creator($selected_table, '*', $where);
+            } else {
+                $table_data = $this->pull_table($selected_table);
+            }
             
+            //check for valid data exist
             if ($table_data && !empty($table_data)) {
-                // Get column names
+                // Get column names for display
                 $columns = $this->get_columns($this->tables[$selected_table]);
                 if ($columns && !empty($columns)) {
                     ?>
@@ -238,7 +285,7 @@ class Admin_Dashboard {
             } else {
                 echo '<p>No data found in selected table.</p>';
             }
+            }
         }
     }
-}
 }

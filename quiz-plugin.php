@@ -229,7 +229,7 @@ function display_recommendations_function($atts) {
     $placeholders = implode(',', array_fill(0, count($tech_ids), '%d'));
     $techs = $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT TechID, `Technology/Service` FROM {$wpdb->prefix}Tech WHERE TechID IN ($placeholders)",
+            "SELECT TechID, `name` FROM {$wpdb->prefix}Tech WHERE TechID IN ($placeholders)",
             $tech_ids
         )
     );
@@ -240,7 +240,7 @@ function display_recommendations_function($atts) {
     foreach ($techs as $tech) {
         ?>
         <div class="tech-card">
-            <h2><?php echo esc_html($tech->{'Technology/Service'}); ?></h2>
+            <h2><?php echo esc_html($tech->{'name'}); ?></h2>
             <!-- Since we don't have images or descriptions yet, we only display the tech name -->
         </div>
         <?php

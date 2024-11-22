@@ -196,6 +196,8 @@ class Admin_Dashboard {
         //This is for deciding on equals or contains filter types
         $filter_type = isset($_GET['filter_type']) ? sanitize_text_field($_GET['filter_type']) : 'contains';
 
+        $limit = isset($_GET['limit-tbox']) ? sanitize_text_field($_GET['limit']) :10;
+
         ?>
         <!-- Table Selection Form -->
         <form method="get">
@@ -209,6 +211,7 @@ class Admin_Dashboard {
                 <option value="responses" <?php selected($selected_table, 'responses'); ?>>Responses Table</option>
             </select>
             <input type="submit" class="button" value="View Table">
+            <input type="text" name="limit-tbox" value="<?php echo esc_attr($limit); ?>">
         </form>
     
         <?php

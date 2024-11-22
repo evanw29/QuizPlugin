@@ -1,0 +1,126 @@
+.quiz-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.question-group {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.question-group.error {
+    border-color: #ff0000;
+    background-color: #fff8f8;
+}
+
+.answers-group {
+    margin-top: 10px;
+}
+
+.answer-option {
+    margin: 10px 0;
+}
+
+/* Combobox specific styles */
+.combobox-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+.combobox-input:focus {
+    border-color: #0073aa;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 115, 170, 0.3);
+}
+
+/* Text input styles */
+.text-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+.text-input:focus {
+    border-color: #0073aa;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 115, 170, 0.3);
+}
+
+.submit-button {
+    background-color: #0073aa;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.submit-button:disabled {
+    background-color: #ccc;
+}
+
+.success {
+    color: green;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid green;
+    border-radius: 5px;
+}
+
+.question-group.error {
+    border-color: #ff0000;
+    background-color: #fff8f8;
+}
+
+.personal-info-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.error {
+    color: #ff0000;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ff0000;
+    border-radius: 5px;
+}
+.table-filter form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.table-filter select,
+.table-filter input[type="text"],
+
+.table-filter .button {
+    margin: 0;
+    height: 30px;
+    line-height: 28px;
+    vertical-align: middle;
+    box-sizing: border-box;
+}
+
+.table-filter input[type="text"] {
+    padding: 0 8px;
+    min-height: 30px;
+}
+
+.table-filter .button {
+    height: 30px;
+    line-height: 28px;
+    padding: 0 10px;
+}

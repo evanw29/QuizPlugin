@@ -209,6 +209,7 @@ function display_recommendations_function($atts) {
         return '<p>Invalid quiz ID. Please provide a valid quiz.</p>';
     }
 
+
     global $wpdb;
 
     // Fetch the tech IDs from wp_Quiz table

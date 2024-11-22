@@ -67,8 +67,7 @@ class Quiz_Handler {
         return $structured_questions;
     }
 
-    // This is for pulling specifically the "personal" questions from the database. These
-    //questions are only to be asked if the user selects they want to save their data 
+    // This is for pulling specifically the "personal" questions from the database.
     public function get_personal_questions() {
 
         // Pull personal questions
@@ -77,8 +76,8 @@ class Quiz_Handler {
                     a.AnswerID, a.answer_Text
              FROM {$this->tables['questions']} q
              LEFT JOIN {$this->tables['answers']} a ON q.QuestionID = a.QuestionID
-             WHERE q.QuestionID IN (23, 24, 25, 28, 29, 30, 31)
-             ORDER BY FIELD(q.QuestionID, 23, 30, 24, 25, 28, 29, 31)"
+             WHERE q.Category = 'Personal'
+             ORDER BY q.QuestionID"
         );
 
         // Structure the data to group answers with their questions

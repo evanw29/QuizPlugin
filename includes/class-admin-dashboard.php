@@ -19,9 +19,9 @@ class Admin_Dashboard {
         );
 
         add_action('admin_menu', array($this, 'add_admin_menu'));
+        //add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
     }
 
-    //This function returns a unfiltered view of an entire given table
     public function pull_table($table){
         global $wpdb;
 
@@ -33,12 +33,11 @@ class Admin_Dashboard {
         return $table_data;
     }
 
-    //This function returns an array of all columns for a given table
     public function get_columns($table){
 
         global $wpdb;
     
-        //Get column names using query
+        // Get the first row with DESCRIBE to get column info
         $columns = $wpdb->get_results("DESCRIBE $table");
         
         if (!$columns) {
@@ -46,7 +45,7 @@ class Admin_Dashboard {
             return array();
         }
     
-        return $columns;
+    return $columns;
     }
 
     public function query_creator($table, $column="*", $value=null, $sort_col=null, $sort_mode=null, $join=null, $limit=null) {
@@ -86,7 +85,6 @@ class Admin_Dashboard {
         return $results;
     }
 
-    //This function is responsible for adding the Quiz Stats menu in the Wordpress Admin sidebar
     public function add_admin_menu() {
         add_menu_page(
             'Quiz Statistics',
@@ -98,7 +96,6 @@ class Admin_Dashboard {
             30
         );
     }
-
     public function render_dashboard() {
 
         //Block non admins from viewing this page
@@ -144,66 +141,53 @@ class Admin_Dashboard {
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
 
         <!-- Always show table view form at top -->
-        <?php $this->render_table_view(); 
-    
-        //Only display recent quizzes if another table is not selected. This is the defautlt view
-        if (!isset($_GET['table']) || empty($_GET['table'])){ 
-            ?>        
-            <div class="quiz-stats-cards">
-                <div class="stat-card">
-                    <h3>Recent Quizzes</h3>
-                    <table class="wp-list-table widefat fixed striped">
-                        <thead>
+        <?php $this->render_table_view(); ?>
+
+        <!-- Default view with recent quizzes -->
+        <div class="quiz-stats-cards">
+            <div class="stat-card">
+                <h3>Recent Quizzes</h3>
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th>Quiz ID</th>
+                            <th>Date</th>
+                            <th>User ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php 
+                    if ($recent_quizzes && !empty($recent_quizzes)) {
+                        foreach ($recent_quizzes as $quiz): ?>
                             <tr>
-                                <th>Quiz ID</th>
-                                <th>Date</th>
-                                <th>User ID</th>
+                                <td><?php echo esc_html($quiz->QuizID); ?></td>
+                                <td><?php echo esc_html($quiz->Date); ?></td>
+                                <td><?php echo esc_html($quiz->user_id); ?></td>
                             </tr>
-                        </thead>
-                        <tbody>
-                        <?php 
-                        //recent populate recent quizzes table
-                        if ($recent_quizzes && !empty($recent_quizzes)) {
-                            foreach ($recent_quizzes as $quiz): ?>
-                                <tr>
-                                    <td><?php echo esc_html($quiz->QuizID); ?></td>
-                                    <td><?php echo esc_html($quiz->Date); ?></td>
-                                    <td><?php echo esc_html($quiz->user_id); ?></td>
-                                </tr>
-                            <?php endforeach;
-                        //no recent quizzes case
-                        } else {
-                            echo '<tr><td colspan="3">No quizzes found</td></tr>';
-                        }
-                        ?>
-                        </tbody>
-                    </table>
-                </div>
+                        <?php endforeach;
+                    } else {
+                        echo '<tr><td colspan="3">No quizzes found</td></tr>';
+                    }
+                    ?>
+                    </tbody>
+                </table>
             </div>
         </div>
+    </div>
     <?php
-        }
     }
 
     //This function handles rendering the table view selector in the quiz stats module
     public function render_table_view() {
         // Get selected table from dropdown
         $selected_table = isset($_GET['table']) ? sanitize_text_field($_GET['table']) : '';
-        
-        // Add these lines for filter values
-        $filter_column = isset($_GET['filter_column']) ? sanitize_text_field($_GET['filter_column']) : '';
-        $filter_value = isset($_GET['filter_value']) ? sanitize_text_field($_GET['filter_value']) : '';
-        //This is for deciding on equals or contains filter types
-        $filter_type = isset($_GET['filter_type']) ? sanitize_text_field($_GET['filter_type']) : 'contains';
-
-        $limit = isset($_GET['limit-tbox']) ? sanitize_text_field($_GET['limit']) :10;
-
+    
         ?>
         <!-- Table Selection Form -->
         <form method="get">
             <input type="hidden" name="page" value="quiz-statistics">
             <select name="table">
-                <option value="">Recent Quizzes</option>
+                <option value="">Select a table</option>
                 <option value="quiz" <?php selected($selected_table, 'quiz'); ?>>Quiz Table</option>
                 <option value="questions" <?php selected($selected_table, 'questions'); ?>>Questions Table</option>
                 <option value="answers" <?php selected($selected_table, 'answers'); ?>>Answers Table</option>
@@ -211,79 +195,19 @@ class Admin_Dashboard {
                 <option value="responses" <?php selected($selected_table, 'responses'); ?>>Responses Table</option>
             </select>
             <input type="submit" class="button" value="View Table">
-            <input type="text" name="limit-tbox" value="<?php echo esc_attr($limit); ?>">
         </form>
     
         <?php
         // Display selected table contents only if a table is selected
         if ($selected_table && array_key_exists($selected_table, $this->tables)) {
-
-            // Get columns using get_columns function
+            // Get columns using your get_columns function
             $columns = $this->get_columns($this->tables[$selected_table]);
             
-            //If the columns were found, allow table filtering.
-            if ($columns) {
-                ?>
-                <div class="table-filter" style="margin-top: 20px;">
-                    <form method="get">
-                        <input type="hidden" name="page" value="quiz-statistics">
-                        <input type="hidden" name="table" value="<?php echo esc_attr($selected_table); ?>">
-                        
-                        <!--Filter by search -->
-                        <select name="filter_column">
-                            <option value="">Select Column to Filter</option>
-                            <?php foreach ($columns as $column): ?>
-                                <option value="<?php echo esc_attr($column->Field); ?>" 
-                                        <?php selected($filter_column, $column->Field); ?>>
-                                    <?php echo esc_html($column->Field); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        
-                        <!--Add the filter type modifier element-->
-                        <select name="filter_type">
-                            <option value="contains" <?php selected($filter_type, 'contains'); ?>>Contains</option>
-                            <option value="equals" <?php selected($filter_type, 'equals'); ?>>Equals</option>
-                        </select>
-                        
-                        <!-- Filter textbox-->
-                        <input type="text" name="filter_value" 
-                               value="<?php echo esc_attr($filter_value); ?>" 
-                               placeholder="Enter search term">
-                        
-                        <!--Search Button-->
-                        <input type="submit" class="button" value="Filter">
-                        
-                        <!-- Add clear filter button when a value is entered into filter textbox-->
-                        <?php if ($filter_column && $filter_value): ?>
-                            <a href="?page=quiz-statistics&table=<?php echo esc_attr($selected_table); ?>" 
-                               class="button">Clear Filter</a>
-                        <?php endif; ?>
-                    </form>
-                </div>
-                <?php
-            }
-
-            // Get queried table data
-            if ($filter_column && $filter_value) {
-
-                //Find filter type and adjust query accordingly (contains or equals search)
-                if ($filter_type == "contains")
-                {
-                    $filter = array("$filter_column LIKE '%$filter_value%'");
-                } else if ($filter_type == "equals"){
-                    $filter = array("LOWER($filter_column) = LOWER('$filter_value')");
-                }
-                
-                //create query
-                $table_data = $this->query_creator($selected_table, '*', $filter);
-            } else {
-                $table_data = $this->pull_table($selected_table);
-            }
+            // Get table data
+            $table_data = $this->pull_table($selected_table);
             
-            //check for valid data exist
             if ($table_data && !empty($table_data)) {
-                // Get column names for display
+                // Get column names
                 $columns = $this->get_columns($this->tables[$selected_table]);
                 if ($columns && !empty($columns)) {
                     ?>
@@ -314,7 +238,7 @@ class Admin_Dashboard {
             } else {
                 echo '<p>No data found in selected table.</p>';
             }
-            }
         }
     }
+}
 }

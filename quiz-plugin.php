@@ -180,7 +180,7 @@ function handle_quiz_submission() {
         }
 
         // Save responses with or without personal questions
-        $quiz_id = $quiz_handler->save_responses( $responses, $personal_info);
+        $quiz_id = $quiz_handler->save_responses($responses, $personal_info);
 
         // After saving responses, process recommendations and redirect
         if ($quiz_id) {
@@ -208,7 +208,6 @@ function display_recommendations_function($atts) {
     if (!$quiz_id) {
         return '<p>Invalid quiz ID. Please provide a valid quiz.</p>';
     }
-
 
     global $wpdb;
 

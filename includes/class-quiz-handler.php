@@ -155,7 +155,6 @@ class Quiz_Handler {
                 array(
                     'Date' => current_time('mysql'),
                     'user_id' => $user_id
-                    // We'll add TechID1, TechID2, TechID3 later
                 ),
                 array('%s', '%d')
             );

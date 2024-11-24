@@ -211,7 +211,8 @@ class Admin_Dashboard {
                 <option value="responses" <?php selected($selected_table, 'responses'); ?>>Responses Table</option>
             </select>
             <input type="submit" class="button" value="View Table">
-            <input type="text" name="limit-tbox" value="<?php echo esc_attr($limit); ?>">
+            <p>Show: <input type="text" name="limit-tbox" value="<?php echo esc_attr($limit); ?>"></p>
+            
         </form>
     
         <?php

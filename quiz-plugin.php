@@ -225,11 +225,11 @@ function display_recommendations_function($atts) {
         return '<p>No recommendations found.</p>';
     }
 
-    // Fetch tech details
+    // Get tech details from db
     $placeholders = implode(',', array_fill(0, count($tech_ids), '%d'));
     $techs = $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT TechID, `name` FROM {$wpdb->prefix}Tech WHERE TechID IN ($placeholders)",
+            "SELECT TechID, `name`, `description`, `price-range`, `url` FROM {$wpdb->prefix}Tech WHERE TechID IN ($placeholders)",
             $tech_ids
         )
     );

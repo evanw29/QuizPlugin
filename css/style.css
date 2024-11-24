@@ -24,7 +24,6 @@
     margin: 10px 0;
 }
 
-/* Combobox specific styles */
 .combobox-input {
     width: 100%;
     max-width: 400px;
@@ -41,7 +40,6 @@
     box-shadow: 0 0 5px rgba(0, 115, 170, 0.3);
 }
 
-/* Text input styles */
 .text-input {
     width: 100%;
     max-width: 400px;

@@ -236,12 +236,19 @@ function display_recommendations_function($atts) {
 
     // Generate HTML for recommendations
     ob_start();
-    echo '<div class="recommendations">';
+    echo '<div class="recommendations-container">';
     foreach ($techs as $tech) {
         ?>
-        <div class="tech-card">
-            <h2><?php echo esc_html($tech->{'name'}); ?></h2>
-            <!-- Since we don't have images or descriptions yet, we only display the tech name -->
+        <div class="recommendation-card">
+            <div class="card-header">
+                <div class="placeholder-image"></div>
+            </div>
+            <div class="card-body">
+                <h3 class="recommendation-name"><?php echo esc_html($tech->name); ?></h3>
+                <p class="recommendation-description"><?php echo esc_html($tech->description); ?></p>
+                <p class="recommendation-price">Price: <?php echo esc_html($tech->{'price-range'}); ?></p>
+                <a href="<?php echo esc_url($tech->url); ?>" class="recommendation-link" target="_blank">Learn More</a>
+            </div>
         </div>
         <?php
     }

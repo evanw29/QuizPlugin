@@ -205,3 +205,45 @@
         flex: 1 1 calc(100% - 20px); /* 1 card per row */
     }
 }
+
+.table-selection-form {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.limit-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.limit-control input[type="number"] {
+    width: 80px;
+    height: 30px;
+    margin: 0;
+}
+
+.table-filter {
+    margin: 20px 0;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.table-filter form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.table-container {
+    margin-top: 20px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: auto;
+}

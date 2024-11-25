@@ -21,13 +21,14 @@ class Admin_Dashboard {
         add_action('admin_menu', array($this, 'add_admin_menu'));
     }
 
-    //This function returns a unfiltered view of an entire given table
-    public function pull_table($table){
+    //This function returns a unfiltered view of an entire given table and a given limit length
+    public function pull_table($table, $limit=10){
         global $wpdb;
 
         $table_data = $wpdb->get_results(
             "SELECT *
-             FROM {$this->tables[$table]}"
+             FROM {$this->tables[$table]}
+             LIMIT $limit"
         );
         
         return $table_data;
@@ -99,23 +100,27 @@ class Admin_Dashboard {
         );
     }
 
+    public function get_recent_quizzes($limit=10){
+
+        $recent_quizzes = $this->query_creator(
+            'quiz',
+            '*',
+            null,
+            'Date',
+            'DESC',
+            null,
+            $limit
+        );
+
+        return $recent_quizzes;
+    }
+
     public function render_dashboard() {
 
         //Block non admins from viewing this page
         if (!current_user_can('manage_options')) {
             wp_die(__('You do not have sufficient permissions to access this page.'));
         }
-
-        //Get some basic statistics
-        $recent_quizzes = $this->query_creator(
-            'quiz',
-            'QuizID, Date, user_id',
-            null,
-            'Date',
-            'DESC',
-            null,
-            5
-        );
 
         //Get total number of quizzes taken
         $total_quizzes = $this->query_creator(
@@ -143,47 +148,11 @@ class Admin_Dashboard {
         <div class="wrap">
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
 
-        <!-- Always show table view form at top -->
-        <?php $this->render_table_view(); 
+        <?php 
+        $this->render_table_view(); 
     
-        //Only display recent quizzes if another table is not selected. This is the defautlt view
-        if (!isset($_GET['table']) || empty($_GET['table'])){ 
-            ?>        
-            <div class="quiz-stats-cards">
-                <div class="stat-card">
-                    <h3>Recent Quizzes</h3>
-                    <table class="wp-list-table widefat fixed striped">
-                        <thead>
-                            <tr>
-                                <th>Quiz ID</th>
-                                <th>Date</th>
-                                <th>User ID</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <?php 
-                        //recent populate recent quizzes table
-                        if ($recent_quizzes && !empty($recent_quizzes)) {
-                            foreach ($recent_quizzes as $quiz): ?>
-                                <tr>
-                                    <td><?php echo esc_html($quiz->QuizID); ?></td>
-                                    <td><?php echo esc_html($quiz->Date); ?></td>
-                                    <td><?php echo esc_html($quiz->user_id); ?></td>
-                                </tr>
-                            <?php endforeach;
-                        //no recent quizzes case
-                        } else {
-                            echo '<tr><td colspan="3">No quizzes found</td></tr>';
-                        }
-                        ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    <?php
-        }
     }
+    
 
     //This function handles rendering the table view selector in the quiz stats module
     public function render_table_view() {
@@ -196,30 +165,31 @@ class Admin_Dashboard {
         //This is for deciding on equals or contains filter types
         $filter_type = isset($_GET['filter_type']) ? sanitize_text_field($_GET['filter_type']) : 'contains';
 
-        $limit = isset($_GET['limit-tbox']) ? sanitize_text_field($_GET['limit']) :10;
+        $limit = isset($_GET['limit-tbox']) ? absint($_GET['limit-tbox']) :10;
 
+        //store combobox selection in selected_table
         ?>
-        <!-- Table Selection Form -->
+        <!-- Table Selection Combobox -->
         <form method="get">
             <input type="hidden" name="page" value="quiz-statistics">
             <select name="table">
-                <option value="">Recent Quizzes</option>
+                <option value="recent" <?php selected($selected_table, 'recent'); ?>>Recent Quizzes</option>
                 <option value="quiz" <?php selected($selected_table, 'quiz'); ?>>Quiz Table</option>
                 <option value="questions" <?php selected($selected_table, 'questions'); ?>>Questions Table</option>
                 <option value="answers" <?php selected($selected_table, 'answers'); ?>>Answers Table</option>
                 <option value="users" <?php selected($selected_table, 'users'); ?>>Users Table</option>
-                <option value="responses" <?php selected($selected_table, 'responses'); ?>>Responses Table</option>
+                <option value="responses",  <?php selected($selected_table, 'responses'); ?>>Responses Table</option>
             </select>
-            <input type="submit" class="button" value="View Table">
-            <p>Show: <input type="text" name="limit-tbox" value="<?php echo esc_attr($limit); ?>"></p>
+            <input type="submit" class="button" value="View">
+            <p>Show: <input type="text" name="limit-tbox" value="<?php echo $limit; ?>"></p>
             
         </form>
-    
+
         <?php
         // Display selected table contents only if a table is selected
-        if ($selected_table && array_key_exists($selected_table, $this->tables)) {
+        if (array_key_exists($selected_table, $this->tables)) {
 
-            // Get columns using get_columns function
+            // Get columns names
             $columns = $this->get_columns($this->tables[$selected_table]);
             
             //If the columns were found, allow table filtering.
@@ -276,46 +246,54 @@ class Admin_Dashboard {
                     $filter = array("LOWER($filter_column) = LOWER('$filter_value')");
                 }
                 
+                $limit = isset($_GET['limit-tbox']) ? absint($_GET['limit-tbox']) :10;
+                
                 //create query
-                $table_data = $this->query_creator($selected_table, '*', $filter);
+                $table_data = $this->query_creator($selected_table, '*', $filter, null, null, null, $limit);
             } else {
-                $table_data = $this->pull_table($selected_table);
+                $table_data = $this->pull_table($selected_table, $limit);
             }
+
+        } elseif ($selected_table == "recent"){
+            $table_data = $this->get_recent_quizzes($limit);
+            $columns = $this->get_columns($this->tables['quiz']);
+        }
             
-            //check for valid data exist
-            if ($table_data && !empty($table_data)) {
-                // Get column names for display
-                $columns = $this->get_columns($this->tables[$selected_table]);
-                if ($columns && !empty($columns)) {
-                    ?>
-                    <div class="table-container" style="margin-top: 20px;">
-                        <table class="wp-list-table widefat fixed striped">
-                            <thead>
-                                <tr>
-                                    <?php foreach ($columns as $column): ?>
-                                        <th><?php echo esc_html($column->Field); ?></th>
-                                    <?php endforeach; ?>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($table_data as $row): ?>
-                                    <tr>
-                                        <?php foreach ($columns as $column): ?>
-                                            <td><?php 
-                                                $field = $column->Field;
-                                                echo esc_html($row->$field); 
-                                            ?></td>
-                                        <?php endforeach; ?>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                    <?php
-            } else {
-                echo '<p>No data found in selected table.</p>';
-            }
-            }
+        //check for valid data exist
+        if ($table_data && !empty($table_data)) {
+            $this->render_data($table_data, $columns);
+        } else {
+            echo '<p>No data found in selected table.</p>';
         }
     }
+
+    public function render_data($data, $columns){
+        
+        ?>
+        <div class="table-container" style="margin-top: 20px;">
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <?php foreach ($columns as $column): ?>
+                            <th><?php echo esc_html($column->Field); ?></th>
+                        <?php endforeach; ?>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($data as $row): ?>
+                        <tr>
+                            <?php foreach ($columns as $column): ?>
+                                <td><?php 
+                                    $field = $column->Field;
+                                    echo esc_html($row->$field); 
+                                ?></td>
+                            <?php endforeach; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php
+    }
+  
 }

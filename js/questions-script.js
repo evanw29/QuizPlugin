@@ -1,21 +1,146 @@
 jQuery(document).ready(function($) {
+    
     console.log('Quiz script loaded');
+
+    let currentCategory = 0;
+    const categories = ['Health Status', 'Technology Comfort', 'Preferences', 'Financial', 'Caregiver', 'Matching'];
+    
+    // Add navigation controls if they don't exist
+    if ($('.quiz-navigation').length == 0) {
+        const navigationContainer = $('<div>', {
+            class: 'quiz-navigation'
+        });
+
+        const prevButton = $('<button>', {
+            type: 'button',
+            class: 'nav-button prev-button',
+            text: 'Previous'
+        });
+
+        const nextButton = $('<button>', {
+            type: 'button',
+            class: 'nav-button next-button',
+            text: 'Next'
+        });
+
+        const submitButton = $('<button>', {
+            type: 'submit',
+            class: 'submit-button',
+            text: 'Submit Quiz'
+        });
+
+        const progressIndicator = $('<div>', {
+            class: 'progress-indicator'
+        });
+
+        navigationContainer.append(prevButton, progressIndicator, nextButton, submitButton);
+        $('#quiz-form').append(navigationContainer);
+
+        // Initially hide the submit button and prev button
+        submitButton.hide();
+        prevButton.hide();
+    }
+
+    // Debug log to check if questions exist
+    console.log('Questions found:', $('.question-group').length);
+    console.log('Categories:', categories);
+
+    function updateCurrentCategory() {
+        console.log('Showing category:', categories[currentCategory]);
+        
+        // Hide all question groups
+        $('.question-group').hide();
+        
+        if (currentCategory >= categories.length) {
+            // Show save data question and personal info if needed
+            $('.save-data-question').show();
+            if ($('input[name="save_data"]:checked').val() === 'yes') {
+                $('#personal-info-section').show();
+            }
+            $('.next-button').hide();
+            $('.submit-button').show();
+        } else {
+            // Show questions for current category
+            $(`.question-group[data-category="${categories[currentCategory]}"]`).show();
+            console.log('Showing questions for category:', categories[currentCategory]);
+            console.log('Questions found:', $(`.question-group[data-category="${categories[currentCategory]}"]`).length);
+            
+            $('.submit-button').hide();
+            $('.next-button').show();
+        }
+
+        // Update navigation buttons
+        $('.prev-button').toggle(currentCategory > 0);
+        
+        // Update progress
+        const progress = ((currentCategory) / (categories.length + 1)) * 100;
+        $('.progress-indicator').html(`
+            <span>Section ${currentCategory + 1} of ${categories.length + 1}</span>
+            <div class="progress-bar">
+                <div class="progress" style="width: ${progress}%"></div>
+            </div>
+        `);
+    }
+
+    // Initialize first category
+    updateCurrentCategory();
+
+    // Navigation button handlers
+    $('.prev-button').on('click', function() {
+        if (currentCategory > 0) {
+            currentCategory--;
+            updateCurrentCategory();
+        }
+    });
+
+    $('.next-button').on('click', function() {
+        if (checkCurrentCategory()) {
+            currentCategory++;
+            updateCurrentCategory();
+        }
+    });
+
+    function checkCurrentCategory() {
+        let isValid = true;
+        const currentQuestions = $(`.question-group[data-category="${categories[currentCategory]}"]:visible`);
+        
+        currentQuestions.each(function() {
+            const $group = $(this);
+            const questionType = $group.find('input, select').first().attr('type') || 'select';
+            
+            if (questionType === 'radio' || questionType === 'select-one') {
+                if (!$group.find('input:checked, select').val()) {
+                    isValid = false;
+                    $group.addClass('error');
+                } else {
+                    $group.removeClass('error');
+                }
+            } else if (questionType === 'checkbox') {
+                if (!$group.find('input:checked').length) {
+                    isValid = false;
+                    $group.addClass('error');
+                } else {
+                    $group.removeClass('error');
+                }
+            }
+        });
+
+        if (!isValid) {
+            $('#form-message').html('<div class="error">Please answer all questions in this section.</div>');
+        } else {
+            $('#form-message').empty();
+        }
+        
+        return isValid;
+    }
 
     // Handle save data question visibility and personal info loading
     const saveDataRadios = $('input[name="save_data"]');
-    console.log('Save data radio buttons found:', saveDataRadios.length);
-
-    // Display personals
     saveDataRadios.on('change', function() {
-        console.log('Radio button changed');
         const saveData = $(this).val() === 'yes';
-        console.log('Save data value:', saveData);
         const personalInfoSection = $('#personal-info-section');
-        console.log('Personal info section found:', personalInfoSection.length);
-
-        // User wants to save their data case
+        
         if (saveData) {
-            console.log('Attempting to fetch personal questions');
             $.ajax({
                 url: quizAjax.ajaxurl,
                 type: 'POST',
@@ -24,25 +149,17 @@ jQuery(document).ready(function($) {
                     nonce: quizAjax.nonce
                 },
                 success: function(response) {
-                    console.log('Ajax response received:', response);
                     if (response.success) {
                         personalInfoSection.html(response.data.html).slideDown();
-                        console.log('Personal info section populated');
-                    } else {
-                        console.log('Ajax response indicated failure');
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.log('Ajax error:', {
-                        status: status,
-                        error: error,
-                        xhr: xhr
-                    });
+                    console.error('Ajax error:', error);
+                    $('#form-message').html('<div class="error">Failed to load personal information form. Please try again.</div>');
                 }
             });
         } else {
-            personalInfoSection.slideUp();
-            personalInfoSection.find('input').val('');
+            personalInfoSection.slideUp().find('input').val('');
         }
     });
 
@@ -78,7 +195,7 @@ jQuery(document).ready(function($) {
 
         console.log('Collected regular responses:', responses);
 
-        // Add personal info if saving data to user
+        //Add personal info if saving data to user
         if (saveData) {
             console.log('Processing personal info fields');
             const personalInfoFields = $('.personal-info');
@@ -88,49 +205,11 @@ jQuery(document).ready(function($) {
 
             personalInfoFields.each(function() {
                 const $input = $(this);
-                const questionId = $input.closest('.question-group').data('question-id');
-
-                console.log('Processing field:', {
-                    questionId: questionId,
-                    type: $input.attr('type') || $input.prop('tagName').toLowerCase(),
-                    value: $input.val(),
-                    isCheckbox: $input.is(':checkbox'),
-                    isSelect: $input.is('select')
-                });
-
-                if ($input.is('select')) {
-                    if (!$input.val()) {
-                        isValid = false;
-                        $input.closest('.question-group').addClass('error');
-                    } else {
-                        $input.closest('.question-group').removeClass('error');
-                        responses[questionId] = $input.val();
-                        console.log('Select value saved:', {
-                            questionId: questionId,
-                            value: $input.val()
-                        });
-                    }
-                } else if ($input.is(':checkbox')) {
-                    if (!responses[questionId]) responses[questionId] = [];
-                    if ($input.is(':checked')) {
-                        responses[questionId].push($input.val());
-                        console.log('Checkbox value added:', {
-                            questionId: questionId,
-                            value: $input.val()
-                        });
-                    }
+                if (!$input.val() && $input.prop('required')) {
+                    isValid = false;
+                    $input.closest('.question-group').addClass('error');
                 } else {
-                    if (!$input.val()) {
-                        isValid = false;
-                        $input.closest('.question-group').addClass('error');
-                    } else {
-                        $input.closest('.question-group').removeClass('error');
-                        responses[questionId] = $input.val();
-                        console.log('Input value saved:', {
-                            questionId: questionId,
-                            value: $input.val()
-                        });
-                    }
+                    $input.closest('.question-group').removeClass('error');
                 }
             });
 

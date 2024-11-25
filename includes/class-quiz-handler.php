@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Quiz Object
+// Quiz Object. Handles all functions of the quiz including: Display, reading and writing to db, and results generation
 class Quiz_Handler {
     private $wpdb;
     private $tables;
@@ -307,22 +307,43 @@ function display_quiz_form() {
     global $quiz_handler;
     $questions = $quiz_handler->get_questions_with_answers();
 
+    //List of question categories, used for creating a page for each
+    $categories = array('Health Status', 'Technology Comfort', 'Preferences', 'Financial', 'Caregiver', 'Matching');
+
     // Create quiz HTML container
     ob_start();
     ?>
     <div class="quiz-form-container">
         <form id="quiz-form" class="quiz-form">
-            <?php wp_nonce_field('quiz_ajax_nonce', 'quiz_nonce'); ?>
-
-            <!-- Regular Quiz Questions -->
-            <?php foreach ($questions as $question): ?>
-                <div class="question-group" data-question-id="<?php echo esc_attr($question['id']); ?>">
+            <?php wp_nonce_field('quiz_ajax_nonce', 'quiz_nonce');
+            
+            foreach ($categories as $category):
+                
+                //Go through each question from the database, and only keep the ones with matching category for this section
+                // and store them in category_questions. 
+                $category_questions = array_filter($questions, function($c) use ($category){
+                    return $c['category'] == $category;
+                });
+                
+                //Skip a category if nothing is found within it. 
+                if (empty($category_questions)) {
+                    continue;
+                }
+                
+                foreach ($category_questions as $question):
+                //Create container for questions
+                ?>
+                <div class="question-group" 
+                     data-question-id="<?php echo esc_attr($question['id']); ?>"
+                     data-category="<?php echo esc_attr($category); ?>">
                     <h3 class="question-prompt"><?php echo esc_html($question['prompt']); ?></h3>
                     <div class="answers-group">
                         <?php
+                        //question type = Combobox case. each question type is handeled differently
                         switch($question['type']) {
                             case 'ComboBox':
                                 ?>
+                                <!--Question element creation-->
                                 <select
                                     name="question_<?php echo esc_attr($question['id']); ?>"
                                     id="question_<?php echo esc_attr($question['id']); ?>"
@@ -330,17 +351,20 @@ function display_quiz_form() {
                                     required
                                 >
                                     <option value="">Please select...</option>
-                                    <?php foreach ($question['answers'] as $answer): ?>
+                                    <?php //Load answers
+                                        foreach ($question['answers'] as $answer): ?>
                                         <option value="<?php echo esc_attr($answer['id']); ?>">
                                             <?php echo esc_html($answer['text']); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
-                                <?php
-                                break;
+                                <?php break;
 
+                            //Checkbox question type
                             case 'Checkbox':
                                 foreach ($question['answers'] as $answer): ?>
+
+                                    <!--Create chechbox question type container-->
                                     <div class="answer-option">
                                         <input
                                             type="checkbox"
@@ -348,36 +372,42 @@ function display_quiz_form() {
                                             value="<?php echo esc_attr($answer['id']); ?>"
                                             id="answer_<?php echo esc_attr($question['id']); ?>_<?php echo esc_attr($answer['id']); ?>"
                                         >
-                                        <label for="answer_<?php echo esc_attr($question['id']); ?>_<?php echo esc_attr($answer['id']); ?>">
-                                            <?php echo esc_html($answer['text']); ?>
-                                        </label>
-                                    </div>
-                                <?php endforeach;
-                                break;
-                            // Multiple Choice
-                            default:
-                                foreach ($question['answers'] as $answer): ?>
-                                    <div class="answer-option">
-                                        <input
-                                            type="radio"
-                                            name="question_<?php echo esc_attr($question['id']); ?>"
-                                            value="<?php echo esc_attr($answer['id']); ?>"
-                                            id="answer_<?php echo esc_attr($question['id']); ?>_<?php echo esc_attr($answer['id']); ?>"
-                                            required
-                                        >
-                                        <label for="answer_<?php echo esc_attr($question['id']); ?>_<?php echo esc_attr($answer['id']); ?>">
-                                            <?php echo esc_html($answer['text']); ?>
-                                        </label>
-                                    </div>
-                                <?php endforeach;
-                                break;
-                        }
-                        ?>
-                    </div>
-                </div>
-            <?php endforeach; ?>
 
-            <div class="question-group save-data-question">
+                                        <!--Answers for question-->
+                                        <label for="answer_<?php echo esc_attr($question['id']); ?>_<?php echo esc_attr($answer['id']); ?>">
+                                            <?php echo esc_html($answer['text']); ?>
+                                        </label>
+                                    </div>
+                                <?php endforeach;
+                                break;
+                            //Multiple choice question type
+                            default: 
+                            foreach ($question['answers'] as $answer): ?>
+                                <div class="answer-option">
+                                    <input
+                                        type="radio"
+                                        name="question_<?php echo esc_attr($question['id']); ?>"
+                                        value="<?php echo esc_attr($answer['id']); ?>"
+                                        id="answer_<?php echo esc_attr($question['id']); ?>_<?php echo esc_attr($answer['id']); ?>"
+                                        required
+                                    >
+                                    <label for="answer_<?php echo esc_attr($question['id']); ?>_<?php echo esc_attr($answer['id']); ?>">
+                                        <?php echo esc_html($answer['text']); ?>
+                                    </label>
+                                </div>
+                            <?php endforeach;
+                            break;
+                    }
+                    ?>
+                </div>
+            </div>
+        <?php 
+            endforeach;
+        endforeach;
+
+        ?>
+         <!--Save Data Question, this question is not in the db nor does it need to be saved so create it here -->
+         <div class="question-group save-data-question" style="display: none;">
                 <h3 class="question-prompt">Would you like to save your information for future reference?</h3>
                 <div class="answers-group">
                     <div class="answer-option">
@@ -391,12 +421,12 @@ function display_quiz_form() {
                 </div>
             </div>
 
+            <!-- Personal Info Section -->
             <div id="personal-info-section" style="display: none">
             </div>
 
-            <button type="submit" class="submit-button">Submit Quiz</button>
+            <div id="form-message"></div>
         </form>
-        <div id="form-message"></div>
     </div>
     <?php
     return ob_get_clean();

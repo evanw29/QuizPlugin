@@ -69,6 +69,10 @@ jQuery(document).ready(function($) {
             $('.next-button').show();
         }
 
+
+        //Scroll to top of page on each category refresh
+        window.scrollTo(0, 0);
+
         // Update navigation buttons
         $('.prev-button').toggle(currentCategory > 0);
         
@@ -82,7 +86,7 @@ jQuery(document).ready(function($) {
         `);
     }
 
-    // Initialize first category
+    //Initialize first category in quiz
     updateCurrentCategory();
 
     // Navigation button handlers

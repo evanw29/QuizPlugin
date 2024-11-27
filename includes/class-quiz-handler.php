@@ -220,14 +220,23 @@ class Quiz_Handler {
 
     // Process recommendations based on user's responses
     public function process_recommendations($quiz_id) {
+        global $wpdb;
+
         // Fetch user's responses for this quiz
-        $responses = $this->wpdb->get_results(
+        $responses = $wpdb->get_results(
             $this->wpdb->prepare(
                 "SELECT QuestionID, AnswerID FROM {$this->tables['responses']} WHERE QuizID = %d",
                 $quiz_id
             )
         );
+        
+        //Could not find responses
+        if (empty($responses)) {
+            error_log("No responses found for QuizID: $quiz_id");
+            return [];
+        }
 
+        //Create an array for the keywords that is associated to each answer given by the user
         $triggered_keywords = array();
 
         // Map answers to keywords
@@ -235,47 +244,65 @@ class Quiz_Handler {
             $question_id = $response->QuestionID;
             $answer_id = $response->AnswerID;
 
-            // Get keywords associated with this answer
+            // Get keywords associated with this answer and their weight (positive/negative association)
             $keywords = $this->wpdb->get_results(
-                $this->wpdb->prepare(
-                    "SELECT KeywordID FROM {$this->tables['keyword_answers']} WHERE QuestionID = %d AND AnswerID = %d AND association = 'positive'",
+                $wpdb->prepare(
+                    "SELECT KeywordID, weight FROM {$this->tables['keyword_answers']} 
+                    WHERE QuestionID = %d AND AnswerID = %d",
                     $question_id,
                     $answer_id
                 )
             );
 
             foreach ($keywords as $keyword) {
-                $triggered_keywords[] = $keyword->KeywordID;
+                $triggered_keywords[$keyword->KeywordID] = ($triggered_keywords[$keyword->KeywordID] ?? 0) + $keyword->weight;
             }
         }
 
-        // Remove duplicate keywords
-        $triggered_keywords = array_unique($triggered_keywords);
-
-        // Map keywords to tech IDs
-        $tech_counts = array();
-        foreach ($triggered_keywords as $keyword_id) {
-            $techs = $this->wpdb->get_results(
-                $this->wpdb->prepare(
-                    "SELECT TechID FROM {$this->tables['tech_keyword_relationship']} WHERE KeywordID = %d AND association = 'positive'",
+        $tech_scores = [];
+        foreach ($triggered_keywords as $keyword_id => $keyword_score) {
+            $techs = $wpdb->get_results(
+                $wpdb->prepare(
+                    "SELECT TechID, association FROM {$this->tables['tech_keyword_relationship']} 
+                    WHERE KeywordID = %d",
                     $keyword_id
                 )
             );
 
             foreach ($techs as $tech) {
                 $tech_id = $tech->TechID;
-                if (!isset($tech_counts[$tech_id])) {
-                    $tech_counts[$tech_id] = 0;
-                }
-                $tech_counts[$tech_id]++;
+
+                // Positive association adds weight, negative subtracts weight
+                $tech_scores[$tech_id] = ($tech_scores[$tech_id] ?? 0) + ($tech->association === 'positive' ? $keyword_score : -$keyword_score);
             }
         }
 
-        // Sort tech IDs by count (descending)
-        arsort($tech_counts);
+        if (empty($tech_scores)) {
+            error_log("No technologies matched for QuizID: $quiz_id");
+            return [];
+        }
 
-        // Get top 3 tech IDs
-        $top_tech_ids = array_slice(array_keys($tech_counts), 0, 3);
+        arsort($tech_scores);
+
+        $top_tech_ids = [];
+        foreach ($tech_scores as $tech_id => $score) {
+            if (count($top_tech_ids) >= 3) {
+                break;
+            }
+            // Prevent duplicates and add the tech ID
+            $top_tech_ids[] = $tech_id;
+        }
+
+        // If not enough techs, fill with random entries from the Tech table
+        if (count($top_tech_ids) < 3) {
+            $remaining_techs = $wpdb->get_results(
+                "SELECT TechID FROM {$this->tables['tech']} WHERE TechID NOT IN (" . implode(',', $top_tech_ids) . ") ORDER BY RAND() LIMIT " . (3 - count($top_tech_ids))
+            );
+
+            foreach ($remaining_techs as $tech) {
+                $top_tech_ids[] = $tech->TechID;
+            }
+        }
 
         return $top_tech_ids;
     }

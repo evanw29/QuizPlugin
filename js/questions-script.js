@@ -69,7 +69,6 @@ jQuery(document).ready(function($) {
             $('.next-button').show();
         }
 
-
         //Scroll to top of page on each category refresh
         window.scrollTo(0, 0);
 

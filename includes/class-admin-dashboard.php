@@ -78,7 +78,7 @@ class Admin_Dashboard {
     
         // Add limit if specified
         if ($limit !== null) {
-            $query .= $wpdb->prepare(" LIMIT %d", $limit);
+            $query .= " LIMIT " . intval($limit);
         }
     
         // Get results
@@ -122,7 +122,7 @@ class Admin_Dashboard {
             wp_die(__('You do not have sufficient permissions to access this page.'));
         }
 
-        //Get total number of quizzes taken
+        //Get total number of quizzes taken NOT CURRENTLY USED
         $total_quizzes = $this->query_creator(
             'quiz',
             'COUNT(*) as count',
@@ -133,7 +133,7 @@ class Admin_Dashboard {
             null
         );
         
-        //Get number of users
+        //Get number of users NOT CURRENTLY USED
         $total_users = $this->query_creator(
             'users',
             'COUNT(DISTINCT email) as count',
@@ -199,6 +199,7 @@ class Admin_Dashboard {
                     <form method="get">
                         <input type="hidden" name="page" value="quiz-statistics">
                         <input type="hidden" name="table" value="<?php echo esc_attr($selected_table); ?>">
+                        <input type="hidden" name="limit-tbox" value="<?php echo esc_attr($limit); ?>">
                         
                         <!--Filter by search -->
                         <select name="filter_column">
@@ -233,6 +234,8 @@ class Admin_Dashboard {
                     </form>
                 </div>
                 <?php
+
+                $limit = isset($_GET['limit-tbox']) ? absint($_GET['limit-tbox']) :10;
             }
 
             // Get queried table data
@@ -245,9 +248,11 @@ class Admin_Dashboard {
                 } else if ($filter_type == "equals"){
                     $filter = array("LOWER($filter_column) = LOWER('$filter_value')");
                 }
-                
-                $limit = isset($_GET['limit-tbox']) ? absint($_GET['limit-tbox']) :10;
-                
+
+                /*?>
+                    <input type="hidden" name="limit-tbox" value="<?php echo esc_attr($limit); ?>">
+                <?php
+                **/
                 //create query
                 $table_data = $this->query_creator($selected_table, '*', $filter, null, null, null, $limit);
             } else {
@@ -257,6 +262,18 @@ class Admin_Dashboard {
         } elseif ($selected_table == "recent"){
             $table_data = $this->get_recent_quizzes($limit);
             $columns = $this->get_columns($this->tables['quiz']);
+        }
+
+        if ($selected_table) {
+            $shown_count = count($table_data);
+            
+            ?>
+            <div class="results">
+                <span class="records-count">
+                    <?php echo $shown_count; ?> Results.
+                </span>
+            </div>
+            <?php        
         }
             
         //check for valid data exist

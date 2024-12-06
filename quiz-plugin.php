@@ -10,10 +10,14 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Include the Quiz Handler class
+//INclude Quiz search class
+require_once plugin_dir_path(__FILE__) . 'includes/class-quiz-search.php';
+
+
+//Include the Quiz Handler class
 require_once plugin_dir_path(__FILE__) . 'includes/class-quiz-handler.php';
 
-// Only load the admin dashboard code if an admin is present on site
+//Only load the admin dashboard code if an admin is present on site
 function init_admin_dashboard() {
     if (is_admin()) {
         require_once plugin_dir_path(__FILE__) . 'includes/class-admin-dashboard.php';
@@ -22,20 +26,26 @@ function init_admin_dashboard() {
 }
 add_action('init', 'init_admin_dashboard');
 
-// Initialize the plugin
+//Initialize the plugin and shortcodes
 function init_quiz_plugin() {
     global $quiz_handler;
     $quiz_handler = new Quiz_Handler();
 
-    // Register shortcode 'quiz_form' for use inside of WP page
+    //Register shortcode 'quiz_form' for use inside of WP page
     add_shortcode('quiz_form', 'display_quiz_form');
 
-    // Register shortcode 'display_recommendations' for recommendations page
+    //Register shortcode 'display_recommendations' for recommendations page
     add_shortcode('display_recommendations', 'display_recommendations_function');
+
+    //Register shortcode 'quiz_search' for quiz search function
+    // add_shortcode('quiz_search', function() {
+    //     $search = new Quiz_Search();
+    //     return $search->get_search_form();
+    // });
 }
 add_action('init', 'init_quiz_plugin');
 
-// Enqueue necessary scripts and styles
+//Enqueue necessary scripts and styles
 function enqueue_quiz_scripts() {
     wp_enqueue_style(
         'quiz-style',
@@ -197,7 +207,7 @@ function handle_quiz_submission() {
 add_action('wp_ajax_handle_quiz_submission', 'handle_quiz_submission');
 add_action('wp_ajax_nopriv_handle_quiz_submission', 'handle_quiz_submission');
 
-// Function to display recommendations
+//Function to display recommendations
 function display_recommendations_function($atts) {
     if (!isset($_GET['quiz_id'])) {
         return '<p>No recommendations available. Please take the quiz first.</p>';
@@ -255,3 +265,24 @@ function display_recommendations_function($atts) {
     echo '</div>';
     return ob_get_clean();
 }
+
+// function handle_quiz_search() {
+//     check_ajax_referer('quiz_ajax_nonce', 'nonce');
+
+//     //Sanitize user inputs
+//     $email = sanitize_email($_POST['email']);
+//     $last_name = sanitize_text_field($_POST['lastName']);
+//     $phone_number = sanitize_text_field($_POST['phoneNumber']);
+
+//     //Create Quiz Search obeject to handle finding user quizzes
+//     $search = new Quiz_Search();
+//     $results = $search->find_user_quizzes($email, $last_name, $phone_number);
+
+//     if ($results) {
+//         wp_send_json_success($results);
+//     } else {
+//         wp_send_json_error('No quizzes found. Please check your information and try again.');
+//     }
+// }
+// add_action('wp_ajax_search_user_quizzes', 'handle_quiz_search');
+// add_action('wp_ajax_nopriv_search_user_quizzes', 'handle_quiz_search');

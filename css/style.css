@@ -217,6 +217,18 @@ select.combobox-input {
     margin: 0 auto;
 }
 
+.records {
+    margin: 15px 0;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.records-count {
+    font-weight: bold;
+}
+
 /* Individual Recommendation Card */
 .recommendation-card {
     flex: 1 1 calc(33.333% - 20px);
@@ -330,4 +342,65 @@ select.combobox-input {
     border: 1px solid #ccc;
     border-radius: 4px;
     overflow: auto;
+}
+
+.quiz-search-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.quiz-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.quiz-card-header {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.quiz-card-title {
+    margin: 0;
+    color: #333;
+    font-size: 1.5em;
+}
+
+.quiz-card-content {
+    padding: 20px;
+}
+
+.quiz-search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #333;
+}
+
+.form-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus {
+    border-color: #0073aa;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.1);
 }

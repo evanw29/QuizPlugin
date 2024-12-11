@@ -111,8 +111,9 @@ jQuery(document).ready(function($) {
         currentQuestions.each(function() {
             const $group = $(this);
             const questionType = $group.find('input, select').first().attr('type') || 'select';
+            //$comboBox = $group.find('input, select')
             
-            if (questionType === 'radio' || questionType === 'select-one') {
+            if (questionType === 'radio' || questionType === 'select') {
                 if (!$group.find('input:checked, select').val()) {
                     isValid = false;
                     $group.addClass('error');

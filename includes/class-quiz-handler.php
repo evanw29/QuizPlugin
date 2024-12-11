@@ -1,20 +1,20 @@
 <?php
-// This file contains the quiz-handler class and its required functions with functionality to create, save, and pull from the wpdb
+//This file contains the quiz-handler class and its required functions with functionality to create, save, and pull from the wpdb
 if (!defined('ABSPATH')) {
     exit;
 }
 
-// Quiz Object. Handles all functions of the quiz including: Display, reading and writing to db, and results generation
+//Quiz Object. Handles all functions of the quiz including: Display, reading and writing to db, and results generation
 class Quiz_Handler {
     private $wpdb;
     private $tables;
 
-    // Create quiz object
+    //Create quiz object
     public function __construct() {
         global $wpdb;
         $this->wpdb = $wpdb;
 
-        // Initialize array with all table names as they appear in phpMyAdmin
+        //Initialize array with all table names as they appear in phpMyAdmin
         $this->tables = array(
             'quiz' => $wpdb->prefix . 'Quiz',
             'questions' => $wpdb->prefix . 'Questions',
@@ -27,10 +27,10 @@ class Quiz_Handler {
         );
     }
 
-    // Pull questions from db
+    //Pull questions from db
     public function get_questions_with_answers() {
 
-        // Get all questions in the wp_Questions table, ignore personal category for now
+        //Get all questions in the wp_Questions table, ignore personal category for now
         $questions = $this->wpdb->get_results(
             "SELECT q.QuestionID, q.Prompt, q.question_Type, q.Category,
                     a.AnswerID, a.answer_Text
@@ -40,12 +40,12 @@ class Quiz_Handler {
              ORDER BY q.QuestionID, a.AnswerID"
         );
 
-        // Create a structured array for easier parsing later
+        //Create a structured array for easier parsing later
         $structured_questions = array();
 
-        // Go through each question and add it to the new array which contains all question info for each question
+        //Go through each question and add it to the new array which contains all question info for each question
         foreach ($questions as $row) {
-            // Set all previously unset questions into array defined fields
+            //Set all previously unset questions into array defined fields
             if (!isset($structured_questions[$row->QuestionID])) {
                 $structured_questions[$row->QuestionID] = array(
                     'id' => $row->QuestionID,
@@ -56,7 +56,7 @@ class Quiz_Handler {
                 );
             }
 
-            // Get all answers for each question and put them into similar array
+            //Get all answers for each question and put them into similar array
             if ($row->AnswerID) {
                 $structured_questions[$row->QuestionID]['answers'][] = array(
                     'id' => $row->AnswerID,
@@ -67,11 +67,11 @@ class Quiz_Handler {
         return $structured_questions;
     }
 
-    // This is for pulling specifically the "personal" questions from the database. These
+    //This is for pulling specifically the "personal" questions from the database. These
     //questions are only to be asked if the user selects they want to save their data 
     public function get_personal_questions() {
 
-        // Pull personal questions
+        //Pull personal questions
         $questions = $this->wpdb->get_results(
             "SELECT q.QuestionID, q.Prompt, q.question_Type,
                     a.AnswerID, a.answer_Text
@@ -81,7 +81,7 @@ class Quiz_Handler {
              ORDER BY FIELD(q.QuestionID, 23, 30, 24, 25, 28, 29, 31)"
         );
 
-        // Structure the data to group answers with their questions
+        //Structure the data to group answers with their questions
         $structured_questions = array();
         foreach ($questions as $row) {
             if (!isset($structured_questions[$row->QuestionID])) {
@@ -92,7 +92,7 @@ class Quiz_Handler {
                     'answers' => array()
                 ];
             }
-            // Get answers for each question
+            //Get answers for each question
             if ($row->AnswerID) {
                 $structured_questions[$row->QuestionID]->answers[] = (object)[
                     'AnswerID' => $row->AnswerID,
@@ -104,10 +104,10 @@ class Quiz_Handler {
         return array_values($structured_questions);
     }
 
-    // Save responses in wp_Responses table
+    //Save responses in wp_Responses table
     public function save_responses($responses, $personal_info = null) {
 
-        // Empty response case
+        //Empty response case
         if (!is_array($responses) || empty($responses)) {
             error_log('Quiz save error: Invalid responses');
             return false;
@@ -115,12 +115,12 @@ class Quiz_Handler {
 
         $this->wpdb->query('START TRANSACTION');
 
-        // Default, Anonymous user case where no data is saved
+        //Default, Anonymous user case where no data is saved
         $user_id = 1;
 
         try {
 
-            // If personal info is provided, save user data
+            //If personal info is provided, save user data
             if ($personal_info !== null) {
                 $user_data = array(
                     'first_name' => sanitize_text_field($personal_info[23]),
@@ -133,23 +133,23 @@ class Quiz_Handler {
                     'user_type' => 'senior'
                 );
 
-                // Insert personal user data
+                //Insert personal user data
                 $user_insert_result = $this->wpdb->insert(
                     $this->tables['users'],
                     $user_data,
                     array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
                 );
 
-                // User creation in database failed
+                //User creation in database failed
                 if ($user_insert_result == false) {
                     throw new Exception('Failed to create user');
                 }
 
-                // Get auto-created user_id from db for later use
+                //Get auto-created user_id from db for later use
                 $user_id = $this->wpdb->insert_id;
             }
 
-            // Insert quiz entry into wp_Quiz in db, ignore tech IDs for now
+            //Insert quiz entry into wp_Quiz in db, ignore tech IDs for now
             $quiz_insert_result = $this->wpdb->insert(
                 $this->tables['quiz'],
                 array(
@@ -159,29 +159,29 @@ class Quiz_Handler {
                 array('%s', '%d')
             );
 
-            // Quiz insertion in db failed
+            //Quiz insertion in db failed
             if ($quiz_insert_result === false) {
                 throw new Exception('Failed to create quiz entry: ' . $this->wpdb->last_error);
             }
 
-            // Pull newly created quiz_id entry from wp_Quiz
+            //Pull newly created quiz_id entry from wp_Quiz
             $quiz_id = $this->wpdb->insert_id;
 
-            // Parse each response
+            //Parse each response
             foreach ($responses as $question_id => $answer_ids) {
-                // Get real question ID for response
+                //Get real question ID for response
                 $question_id = absint($question_id);
 
-                // Convert to array to preserve checkbox question types
+                //Convert to array to preserve checkbox question types
                 if (!is_array($answer_ids)) {
                     $answer_ids = array($answer_ids);
                 }
 
-                // Go through each response (for each question)
+                //Go through each response (for each question)
                 foreach ($answer_ids as $answer_id) {
                     $answer_id = absint($answer_id);
 
-                    // Insert response in wp_Responses
+                    //Insert response in wp_Responses
                     $response_insert_result = $this->wpdb->insert(
                         $this->tables['responses'],
                         array(
@@ -193,36 +193,36 @@ class Quiz_Handler {
                         array('%d', '%d', '%d', '%d')
                     );
 
-                    // Could not insert response error case
+                    //Could not insert response error case
                     if ($response_insert_result === false) {
                         throw new Exception('Failed to save response: ' . $this->wpdb->last_error);
                     }
                 }
             }
 
-            // Commit transaction
+            //Commit transaction
             $this->wpdb->query('COMMIT');
 
-            // After saving responses, process recommendations
+            //After saving responses, process recommendations
             $top_tech_ids = $this->process_recommendations($quiz_id);
 
-            // Store top tech IDs in wp_Quiz table
+            //Store top tech IDs in wp_Quiz table
             $this->store_recommendations($quiz_id, $top_tech_ids);
 
             return $quiz_id;
 
-        // Do not commit if error occurs
+        //Do not commit if error occurs
         } catch (Exception $e) {
             $this->wpdb->query('ROLLBACK');
             throw $e;
         }
     }
 
-    // Process recommendations based on user's responses
+    //Process recommendations based on user's responses
     public function process_recommendations($quiz_id) {
         global $wpdb;
 
-        // Fetch user's responses for this quiz
+        //Fetch user's responses for this quiz
         $responses = $wpdb->get_results(
             $this->wpdb->prepare(
                 "SELECT QuestionID, AnswerID FROM {$this->tables['responses']} WHERE QuizID = %d",
@@ -239,12 +239,12 @@ class Quiz_Handler {
         //Create an array for the keywords that is associated to each answer given by the user
         $triggered_keywords = array();
 
-        // Map answers to keywords
+        //Map answers to keywords
         foreach ($responses as $response) {
             $question_id = $response->QuestionID;
             $answer_id = $response->AnswerID;
 
-            // Get keywords associated with this answer and their weight (positive/negative association)
+            //Get keywords associated with this answer and their weight (positive/negative association)
             $keywords = $this->wpdb->get_results(
                 $wpdb->prepare(
                     "SELECT KeywordID, weight FROM {$this->tables['keyword_answers']} 
@@ -272,7 +272,7 @@ class Quiz_Handler {
             foreach ($techs as $tech) {
                 $tech_id = $tech->TechID;
 
-                // Positive association adds weight, negative subtracts weight
+                //Positive association adds weight, negative subtracts weight
                 $tech_scores[$tech_id] = ($tech_scores[$tech_id] ?? 0) + ($tech->association === 'positive' ? $keyword_score : -$keyword_score);
             }
         }
@@ -289,11 +289,11 @@ class Quiz_Handler {
             if (count($top_tech_ids) >= 3) {
                 break;
             }
-            // Prevent duplicates and add the tech ID
+            //Prevent duplicates and add the tech ID
             $top_tech_ids[] = $tech_id;
         }
 
-        // If not enough techs, fill with random entries from the Tech table
+        //If not enough techs, fill with random entries from the Tech table
         if (count($top_tech_ids) < 3) {
             $remaining_techs = $wpdb->get_results(
                 "SELECT TechID FROM {$this->tables['tech']} WHERE TechID NOT IN (" . implode(',', $top_tech_ids) . ") ORDER BY RAND() LIMIT " . (3 - count($top_tech_ids))
@@ -307,16 +307,16 @@ class Quiz_Handler {
         return $top_tech_ids;
     }
 
-    // Store recommendations in wp_Quiz table
+    //Store recommendations in wp_Quiz table
     public function store_recommendations($quiz_id, $tech_ids) {
-        // Prepare data for update
+        //Prepare data for update
         $data = array(
             'TechID1' => isset($tech_ids[0]) ? $tech_ids[0] : null,
             'TechID2' => isset($tech_ids[1]) ? $tech_ids[1] : null,
             'TechID3' => isset($tech_ids[2]) ? $tech_ids[2] : null,
         );
 
-        // Update the wp_Quiz table
+        //Update the wp_Quiz table
         $this->wpdb->update(
             $this->tables['quiz'],
             $data,
@@ -327,7 +327,7 @@ class Quiz_Handler {
     }
 }
 
-// Initialize Quiz handler
+//Initialize Quiz handler
 $quiz_handler = new Quiz_Handler();
 
 function display_quiz_form() {
@@ -337,7 +337,7 @@ function display_quiz_form() {
     //List of question categories, used for creating a page for each
     $categories = array('Health Status', 'Technology Comfort', 'Preferences', 'Financial', 'Caregiver', 'Matching');
 
-    // Create quiz HTML container
+    //Create quiz HTML container
     ob_start();
     ?>
     <div class="quiz-form-container">
@@ -347,7 +347,7 @@ function display_quiz_form() {
             foreach ($categories as $category):
                 
                 //Go through each question from the database, and only keep the ones with matching category for this section
-                // and store them in category_questions. 
+                //and store them in category_questions. 
                 $category_questions = array_filter($questions, function($c) use ($category){
                     return $c['category'] == $category;
                 });

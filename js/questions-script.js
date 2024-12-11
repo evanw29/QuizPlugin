@@ -5,7 +5,7 @@ jQuery(document).ready(function($) {
     let currentCategory = 0;
     const categories = ['Health Status', 'Technology Comfort', 'Preferences', 'Financial', 'Caregiver', 'Matching'];
     
-    // Add navigation controls if they don't exist
+    //Add navigation controls if they don't exist
     if ($('.quiz-navigation').length == 0) {
         const navigationContainer = $('<div>', {
             class: 'quiz-navigation'
@@ -36,23 +36,23 @@ jQuery(document).ready(function($) {
         navigationContainer.append(prevButton, progressIndicator, nextButton, submitButton);
         $('#quiz-form').append(navigationContainer);
 
-        // Initially hide the submit button and prev button
+        //Initially hide the submit button and prev button
         submitButton.hide();
         prevButton.hide();
     }
 
-    // Debug log to check if questions exist
+    //Debug log to check if questions exist
     console.log('Questions found:', $('.question-group').length);
     console.log('Categories:', categories);
 
     function updateCurrentCategory() {
         console.log('Showing category:', categories[currentCategory]);
         
-        // Hide all question groups
+        //Hide all question groups
         $('.question-group').hide();
         
         if (currentCategory >= categories.length) {
-            // Show save data question and personal info if needed
+            //Show save data question and personal info if needed
             $('.save-data-question').show();
             if ($('input[name="save_data"]:checked').val() === 'yes') {
                 $('#personal-info-section').show();
@@ -60,7 +60,7 @@ jQuery(document).ready(function($) {
             $('.next-button').hide();
             $('.submit-button').show();
         } else {
-            // Show questions for current category
+            //Show questions for current category
             $(`.question-group[data-category="${categories[currentCategory]}"]`).show();
             console.log('Showing questions for category:', categories[currentCategory]);
             console.log('Questions found:', $(`.question-group[data-category="${categories[currentCategory]}"]`).length);
@@ -72,10 +72,10 @@ jQuery(document).ready(function($) {
         //Scroll to top of page on each category refresh
         window.scrollTo(0, 0);
 
-        // Update navigation buttons
+        //Update navigation buttons
         $('.prev-button').toggle(currentCategory > 0);
         
-        // Update progress
+        //Update progress
         const progress = ((currentCategory) / (categories.length + 1)) * 100;
         $('.progress-indicator').html(`
             <span>Section ${currentCategory + 1} of ${categories.length + 1}</span>
@@ -88,7 +88,7 @@ jQuery(document).ready(function($) {
     //Initialize first category in quiz
     updateCurrentCategory();
 
-    // Navigation button handlers
+    //Navigation button handlers
     $('.prev-button').on('click', function() {
         if (currentCategory > 0) {
             currentCategory--;
@@ -103,6 +103,7 @@ jQuery(document).ready(function($) {
         }
     });
 
+    //This function checks if all questions in a page have been answered, and asks the user to do so if they have not already.
     function checkCurrentCategory() {
         let isValid = true;
         const currentQuestions = $(`.question-group[data-category="${categories[currentCategory]}"]:visible`);
@@ -137,7 +138,7 @@ jQuery(document).ready(function($) {
         return isValid;
     }
 
-    // Handle save data question visibility and personal info loading
+    //Handle save data question visibility and personal info loading
     const saveDataRadios = $('input[name="save_data"]');
     saveDataRadios.on('change', function() {
         const saveData = $(this).val() === 'yes';
@@ -176,10 +177,10 @@ jQuery(document).ready(function($) {
 
         submitButton.prop('disabled', true);
 
-        // Create responses array
+        //Create responses array
         let responses = {};
 
-        // Gather regular question responses
+        //Gather regular question responses
         $('.question-group:not(.save-data-question)').each(function() {
             const questionId = $(this).data('question-id');
             const inputs = $(this).find('input:checked, select, input[type="text"], input[type="email"], input[type="date"], input[type="tel"]');
@@ -231,7 +232,7 @@ jQuery(document).ready(function($) {
             responses: responses
         });
 
-        // Submit form data to database
+        //Submit form data to database
         $.ajax({
             url: quizAjax.ajaxurl,
             type: 'POST',
@@ -240,16 +241,18 @@ jQuery(document).ready(function($) {
                 nonce: quizAjax.nonce,
                 responses: responses
             },
+            //On success write to console
             success: function(response) {
                 console.log('Submission response received:', response);
                 if (response.success) {
-                    // Redirect to recommendations page
+                    //Redirect to recommendations page
                     window.location.href = response.data.redirect_url;
                 } else {
                     formMessage.html('<div class="error">' + (response.data || 'An error occurred.') + '</div>');
                     submitButton.prop('disabled', false);
                 }
             },
+            //fail case
             error: function(xhr, status, error) {
                 console.log('Submission error:', {
                     status: status,

@@ -67,14 +67,14 @@ function enqueue_quiz_scripts() {
 }
 add_action('wp_enqueue_scripts', 'enqueue_quiz_scripts');
 
-// Handle AJAX request to get personal questions
+//Handle AJAX request to get personal questions
 function handle_get_personal_questions() {
     check_ajax_referer('quiz_ajax_nonce', 'nonce');
 
     global $quiz_handler;
     $questions = $quiz_handler->get_personal_questions();
 
-    // Display the personal info questions
+    //Display the personal info questions
     ob_start();
     ?>
     <div class="personal-info-section">
@@ -84,7 +84,7 @@ function handle_get_personal_questions() {
                 <label><?php echo esc_html($question->Prompt); ?></label>
                 <div class="answers-group">
                 <?php
-                // Switch case for each question type
+                //Switch case for each question type
                 switch($question->question_Type) {
                     case 'ComboBox':
                         ?>
@@ -122,18 +122,18 @@ function handle_get_personal_questions() {
                         break;
 
                     default:
-                        // Handle different text input types based on question ID
+                        //Handle different text input types based on question ID
                         $input_type = 'text';
                         $extra_attrs = 'required';
 
-                        // Date of birth
+                        //Date of birth
                         if ($question->QuestionID == 24) {
                             $input_type = 'date';
                             $extra_attrs .= ' max="' . date('Y-m-d') . '"';
-                        // Email
+                        //Email
                         } elseif ($question->QuestionID == 28) {
                             $input_type = 'email';
-                        // Phone
+                        //Phone
                         } elseif ($question->QuestionID == 29) {
                             $input_type = 'tel';
                             $extra_attrs .= ' pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number"';
@@ -161,10 +161,10 @@ function handle_get_personal_questions() {
 add_action('wp_ajax_get_personal_questions', 'handle_get_personal_questions');
 add_action('wp_ajax_nopriv_get_personal_questions', 'handle_get_personal_questions');
 
-// AJAX handler for form submission
+//AJAX handler for form submission
 function handle_quiz_submission() {
 
-    // Check if answers were answered by user (HTML data has been sent)
+    //Check if answers were answered by user (HTML data has been sent)
     if (!isset($_POST['responses']) || !is_array($_POST['responses'])) {
         wp_send_json_error('No valid responses received');
         return;
@@ -180,7 +180,7 @@ function handle_quiz_submission() {
     $personal_info = null;
 
     try {
-        // Question IDs of personal questions in preexisting db
+        //Question IDs of personal questions in preexisting db
         $personal_fields = [23, 24, 25, 28, 29, 30, 31];
         foreach ($personal_fields as $field) {
             if (isset($responses[$field])) {
@@ -189,10 +189,10 @@ function handle_quiz_submission() {
             }
         }
 
-        // Save responses with or without personal questions
+        //Save responses with or without personal questions
         $quiz_id = $quiz_handler->save_responses( $responses, $personal_info);
 
-        // After saving responses, process recommendations and redirect
+        //After saving responses, process recommendations and redirect
         if ($quiz_id) {
             wp_send_json_success(array(
                 'redirect_url' => site_url('/recommendation/?quiz_id=' . $quiz_id)
@@ -217,7 +217,7 @@ function display_recommendations_function($atts) {
 
     global $wpdb;
 
-    // Fetch the tech IDs from wp_Quiz table
+    //Fetch the tech IDs from wp_Quiz table
     $quiz = $wpdb->get_row(
         $wpdb->prepare(
             "SELECT TechID1, TechID2, TechID3 FROM {$wpdb->prefix}Quiz WHERE QuizID = %d",
@@ -235,7 +235,7 @@ function display_recommendations_function($atts) {
         return '<p>No recommendations found.</p>';
     }
 
-    // Get tech details from db
+    //Get tech details from db
     $placeholders = implode(',', array_fill(0, count($tech_ids), '%d'));
     $techs = $wpdb->get_results(
         $wpdb->prepare(
@@ -244,7 +244,7 @@ function display_recommendations_function($atts) {
         )
     );
 
-    // Generate HTML for recommendations
+    //Generate HTML for recommendations
     ob_start();
     echo '<div class="recommendations-container">';
     foreach ($techs as $tech) {

@@ -454,8 +454,9 @@ select.combobox-input {
 }
 
 .quiz-results-table th {
-    background-color: #f5f5f5;
+    background-color: #5db1c9;
     font-weight: bold;
+    color: #000;
 }
 
 .quiz-results-table tr:nth-child(even) {

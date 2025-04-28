@@ -48,9 +48,9 @@ jQuery(document).ready(function($) {
                 //Successful query
                 if (response.success) {
                     //Display the results
-                    let html = '<h3>Your Previous Results:</h3>';
+                    let html = '<h3 >Your Previous Results:</h3>';
                     html += '<table class="quiz-results-table">';
-                    html += '<thead><tr><th>Date</th><th>Recommendations</th><th>Action</th></tr></thead>';
+                    html += '<thead><tr><th>Date</th><th>Recommendations</th><th>Quiz Results</th></tr></thead>';
                     html += '<tbody>';
                     
                     response.data.forEach(function(quiz) {

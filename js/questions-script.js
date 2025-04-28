@@ -25,7 +25,7 @@ jQuery(document).ready(function($) {
 
         const submitButton = $('<button>', {
             type: 'submit',
-            class: 'submit-button',
+            class: 'quiz-submit-button',
             text: 'Submit Quiz'
         });
 
@@ -48,7 +48,7 @@ jQuery(document).ready(function($) {
     function updateCurrentCategory() {
         console.log('Showing category:', categories[currentCategory]);
         
-        //Hide all question groups
+        //Hide all question groups temporarily to load following category.
         $('.question-group').hide();
         
         if (currentCategory >= categories.length) {
@@ -58,14 +58,14 @@ jQuery(document).ready(function($) {
                 $('#personal-info-section').show();
             }
             $('.next-button').hide();
-            $('.submit-button').show();
+            $('.quiz-submit-button').show();
         } else {
             //Show questions for current category
             $(`.question-group[data-category="${categories[currentCategory]}"]`).show();
             console.log('Showing questions for category:', categories[currentCategory]);
             console.log('Questions found:', $(`.question-group[data-category="${categories[currentCategory]}"]`).length);
             
-            $('.submit-button').hide();
+            $('.quiz-submit-button').hide();
             $('.next-button').show();
         }
 
@@ -145,6 +145,7 @@ jQuery(document).ready(function($) {
         const saveData = $(this).val() === 'yes';
         const personalInfoSection = $('#personal-info-section');
         
+        //Save data is selected
         if (saveData) {
             $.ajax({
                 url: quizAjax.ajaxurl,
@@ -227,6 +228,7 @@ jQuery(document).ready(function($) {
             }
         }
 
+        //Log request info
         console.log('Data being sent to server:', {
             action: 'handle_quiz_submission',
             nonce: quizAjax.nonce,

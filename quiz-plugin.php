@@ -31,17 +31,14 @@ function init_quiz_plugin() {
     global $quiz_handler;
     $quiz_handler = new Quiz_Handler();
 
-    //Register shortcode 'quiz_form' for use inside of WP page
+    //Register shortcode 'quiz_form' for use inside of WP page. Quiz itself
     add_shortcode('quiz_form', 'display_quiz_form');
 
     //Register shortcode 'display_recommendations' for recommendations page
     add_shortcode('display_recommendations', 'display_recommendations_function');
 
     //Register shortcode 'quiz_search' for quiz search function
-    // add_shortcode('quiz_search', function() {
-    //     $search = new Quiz_Search();
-    //     return $search->get_search_form();
-    // });
+    add_shortcode('quiz_search', 'display_quiz_search');
 }
 add_action('init', 'init_quiz_plugin');
 
@@ -60,7 +57,21 @@ function enqueue_quiz_scripts() {
         true
     );
 
+    wp_enqueue_script(
+        'quiz-search',
+        plugins_url('js/quiz-search.js', __FILE__),
+        array('jquery'),
+        '1.0',
+        true
+    );
+
+    //This creates a ajax link within the wordpress site for future reference by JS for the quiz searching by user
     wp_localize_script('quiz-script', 'quizAjax', array(
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('quiz_ajax_nonce')
+    ));
+
+    wp_localize_script('quiz-search', 'quizAjax', array(
         'ajaxurl' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('quiz_ajax_nonce')
     ));
@@ -195,6 +206,7 @@ function handle_quiz_submission() {
         //After saving responses, process recommendations and redirect
         if ($quiz_id) {
             wp_send_json_success(array(
+                //Fix: hash url for enhanced security
                 'redirect_url' => site_url('/recommendation/?quiz_id=' . $quiz_id)
             ));
         } else {
@@ -266,23 +278,28 @@ function display_recommendations_function($atts) {
     return ob_get_clean();
 }
 
-// function handle_quiz_search() {
-//     check_ajax_referer('quiz_ajax_nonce', 'nonce');
+//This function handles the search previous user quizzes functionality. Users input their email, last name, and phone number to see a 
+//populated table of their previous quiz results
+function handle_quiz_search() {
+    //check_ajax_referer('quiz_ajax_nonce', 'nonce');
 
-//     //Sanitize user inputs
-//     $email = sanitize_email($_POST['email']);
-//     $last_name = sanitize_text_field($_POST['lastName']);
-//     $phone_number = sanitize_text_field($_POST['phoneNumber']);
+    //Sanitize user inputs
+    $last_name = sanitize_text_field($_POST['lastName']);
+    $email = sanitize_email($_POST['email']);
+    $phone_number = sanitize_text_field($_POST['phoneNumber']);
 
-//     //Create Quiz Search obeject to handle finding user quizzes
-//     $search = new Quiz_Search();
-//     $results = $search->find_user_quizzes($email, $last_name, $phone_number);
+    //Create Quiz Search object to handle finding user quizzes
+    $search = new Quiz_Search();
+    $results = $search->search_quizzes($last_name,$email, $phone_number);
 
-//     if ($results) {
-//         wp_send_json_success($results);
-//     } else {
-//         wp_send_json_error('No quizzes found. Please check your information and try again.');
-//     }
-// }
-// add_action('wp_ajax_search_user_quizzes', 'handle_quiz_search');
-// add_action('wp_ajax_nopriv_search_user_quizzes', 'handle_quiz_search');
+    //A successful search is returned through AJAX request, else error message is returned.
+    if ($results) {
+        wp_send_json_success($results);
+    } else {
+        wp_send_json_error('No quizzes found. Please check your information and try again.');
+    }
+}
+
+//ajax function hooks
+add_action('wp_ajax_handle_quiz_search', 'handle_quiz_search');
+add_action('wp_ajax_nopriv_handle_quiz_search', 'handle_quiz_search');

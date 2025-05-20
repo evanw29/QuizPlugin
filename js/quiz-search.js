@@ -50,6 +50,7 @@ jQuery(document).ready(function($) {
                     //Display the results
                     let html = '<h3 >Your Previous Results:</h3>';
                     html += '<table class="quiz-results-table">';
+                    //Fix: uncapitalize headers?
                     html += '<thead><tr><th>Date</th><th>Recommendations</th><th>Quiz Results</th></tr></thead>';
                     html += '<tbody>';
                     

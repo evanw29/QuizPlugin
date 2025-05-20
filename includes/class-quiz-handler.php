@@ -133,20 +133,41 @@ class Quiz_Handler {
                     'user_type' => 'senior'
                 );
 
-                //Insert personal user data
-                $user_insert_result = $this->wpdb->insert(
-                    $this->tables['users'],
-                    $user_data,
-                    array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
-                );
+                //Check if user already exists in database, existing_user will be Null if no user with important fields is found
+                $existing_user = $this->wpdb->get_row($this->wpdb->prepare(
+                    "SELECT user_id 
+                     FROM {$this->tables['users']} 
+                     WHERE UPPER(last_name) = UPPER(%s) 
+                     AND UPPER(email) = UPPER(%s)
+                     AND phone_number = %s
+                     AND user_type = 'senior'",
+                    $user_data['last_name'],
+                    $user_data['email'],
+                    $user_data['phone_number']
+                ));
+                
+                //Previous user found
+                if ($existing_user) {
+                    //Use found id
+                    $user_id = $existing_user->user_id;
+                
+                //New User creation required
+                } else {
+                    //Insert personal user data
+                    $user_insert_result = $this->wpdb->insert($this->wpdb->prepare(
+                        $this->tables['users'],
+                        $user_data,
+                        array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+                    ));
 
-                //User creation in database failed
-                if ($user_insert_result == false) {
-                    throw new Exception('Failed to create user');
+                    //User creation in database failed
+                    if ($user_insert_result == false) {
+                        throw new Exception('Failed to create user');
+                    }
+
+                    //Get auto-created user_id from db for later use
+                    $user_id = $this->wpdb->insert_id;
                 }
-
-                //Get auto-created user_id from db for later use
-                $user_id = $this->wpdb->insert_id;
             }
 
             //Insert quiz entry into wp_Quiz in db, ignore tech IDs for now

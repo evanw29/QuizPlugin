@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Quiz Plugin
  * Description: Quiz plugin for LTC
- * Author: Saad Sahi, Evan White
+ * Author: Evan White, Saad Sahi
  * Version: 1.0
  */
 
@@ -65,6 +65,14 @@ function enqueue_quiz_scripts() {
         true
     );
 
+    wp_enqueue_script(
+        'image-handler-script',
+        plugins_url('js/image-handler-script.js', __FILE__),
+        array('jquery'),
+        '1.0',
+        true
+    );
+
     //This creates a ajax link within the wordpress site for future reference by JS for the quiz searching by user
     wp_localize_script('quiz-script', 'quizAjax', array(
         'ajaxurl' => admin_url('admin-ajax.php'),
@@ -75,7 +83,13 @@ function enqueue_quiz_scripts() {
         'ajaxurl' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('quiz_ajax_nonce')
     ));
+
+    wp_localize_script('image-handler-script', 'imageAjax', array(
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('image_ajax_nonce')
+    ));
 }
+
 add_action('wp_enqueue_scripts', 'enqueue_quiz_scripts');
 
 //Handle AJAX request to get personal questions
@@ -169,8 +183,6 @@ function handle_get_personal_questions() {
 
     wp_send_json_success(array('html' => ob_get_clean()));
 }
-add_action('wp_ajax_get_personal_questions', 'handle_get_personal_questions');
-add_action('wp_ajax_nopriv_get_personal_questions', 'handle_get_personal_questions');
 
 //AJAX handler for form submission
 function handle_quiz_submission() {
@@ -216,8 +228,6 @@ function handle_quiz_submission() {
         wp_send_json_error('An error occurred: ' . $e->getMessage());
     }
 }
-add_action('wp_ajax_handle_quiz_submission', 'handle_quiz_submission');
-add_action('wp_ajax_nopriv_handle_quiz_submission', 'handle_quiz_submission');
 
 //Function to display recommendations
 function display_recommendations_function($atts) {
@@ -300,6 +310,55 @@ function handle_quiz_search() {
     }
 }
 
+function handle_image_name_matching() {
+    check_ajax_referer('image_ajax_nonce', 'nonce');
+
+    global $wpdb;
+
+    $tech_name = sanitize_text_field($_POST['title']);
+
+    if (empty($tech_name)) {
+        wp_send_json_error('Image title not recieved');
+        return;
+    }
+
+    //pull matching tech from the database
+    $tech = $wpdb->get_row($wpdb->prepare(
+            "SELECT TechID, `name`, `url` 
+            FROM {$wpdb->prefix}Tech
+            WHERE `name` IS NOT NULL 
+             AND `url` IS NOT NULL
+             AND (LOWER(TRIM(`name`)) = %s 
+             OR LOWER(TRIM(`name`)) LIKE %s)",
+            $tech_name,
+            '%' . $tech_name . '%'
+
+        )
+    );
+
+    if ($tech && !empty($tech->url)) {
+        //If a tech is found, return the tech ID and URL
+        wp_send_json_success(array(
+            'tech_id' => $tech->TechID,
+            'url' => $tech->url,
+            'target' => '_blank'
+        ));
+    } else {
+        //If no tech is found, return an error message
+        wp_send_json_error('No matching tech found for the provided name: ' . $tech_name);
+    }
+
+}
+
 //ajax function hooks
 add_action('wp_ajax_handle_quiz_search', 'handle_quiz_search');
 add_action('wp_ajax_nopriv_handle_quiz_search', 'handle_quiz_search');
+
+add_action('wp_ajax_handle_quiz_submission', 'handle_quiz_submission');
+add_action('wp_ajax_nopriv_handle_quiz_submission', 'handle_quiz_submission');
+
+add_action('wp_ajax_get_personal_questions', 'handle_get_personal_questions');
+add_action('wp_ajax_nopriv_get_personal_questions', 'handle_get_personal_questions');
+
+add_action('wp_ajax_handle_image_name_matching', 'handle_image_name_matching');
+add_action('wp_ajax_nopriv_handle_image_name_matching', 'handle_image_name_matching');

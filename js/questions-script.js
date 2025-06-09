@@ -5,7 +5,7 @@ jQuery(document).ready(function($) {
     let currentCategory = 0;
     const categories = ['Health Status', 'Technology Comfort', 'Preferences', 'Financial', 'Caregiver', 'Matching'];
     
-    //Add navigation controls if they don't exist
+    //Add navigation controls
     if ($('.quiz-navigation').length == 0) {
         const navigationContainer = $('<div>', {
             class: 'quiz-navigation'

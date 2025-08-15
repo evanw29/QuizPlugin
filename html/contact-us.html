@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us</title>
+    <style>
+        :root {
+            --primary-color: #5db1c9;
+            --light-blue: #bee2eb;
+            --dark-blue: #346572;
+            --gold: #f0b74c;
+            --navy: #102f3c;
+            --white: #ffffff;
+            --text-dark: #102f3c;
+            --text-light: #346572;
+            --background-light: #f8fafb;
+            --gradient-primary: linear-gradient(135deg, #5db1c9 0%, #346572 100%);
+            --gradient-accent: linear-gradient(135deg, #bee2eb 0%, #5db1c9 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            overflow-x: hidden;
+            background: var(--white);
+        }
+
+        /* Contact Section */
+        .contact-section {
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+            padding: 100px 0 60px;
+            background: linear-gradient(135deg, var(--white) 0%, var(--background-light) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-section::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -30%;
+            width: 50%;
+            height: 100%;
+            background: var(--gradient-accent);
+            border-radius: 50%;
+            opacity: 0.08;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .contact-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-section h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .contact-section p {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin-bottom: 3rem;
+            line-height: 1.7;
+        }
+
+        .email-card {
+            background: var(--white);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(93, 177, 201, 0.15);
+            border: 1px solid rgba(93, 177, 201, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .email-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .email-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 80px rgba(93, 177, 201, 0.2);
+        }
+
+        .email-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            font-size: 2rem;
+        }
+
+        .email-label {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .email-address {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            word-break: break-all;
+        }
+
+        .email-address:hover {
+            color: var(--dark-blue);
+            transform: scale(1.05);
+        }
+        
+        .copy-button {
+            margin-top: 1.5rem;
+            padding: 12px 24px;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(93, 177, 201, 0.3);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            min-width: 140px;
+        }
+
+        .copy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(93, 177, 201, 0.4);
+        }
+
+        .copy-button:active {
+            transform: translateY(0px);
+        }
+
+        .copy-button.copied {
+            background: var(--gradient-accent);
+            animation: pulse 0.3s ease;
+        }
+        
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .contact-section {
+                min-height: 60vh;
+                padding: 80px 0 40px;
+            }
+
+            .contact-section h1 {
+                font-size: 2.5rem;
+            }
+
+            .contact-section p {
+                font-size: 1.1rem;
+            }
+
+            .email-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .email-address {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .contact-container {
+                padding: 0 1rem;
+            }
+
+            .contact-section h1 {
+                font-size: 2rem;
+            }
+
+            .email-card {
+                padding: 2rem 1rem;
+            }
+
+            .email-address {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="contact-container">
+            <h1>Get in Touch</h1>
+            <p>Have questions about our healthcare recommendations or want to reach out? We're here to help!</p>
+            
+            <div class="email-card">
+                <div class="email-icon">📧</div>
+                <div class="email-label">Send us an email</div>
+                <a href="mailto:lifetechcarewebsite@gmail.com" class="email-address">
+                    lifetechcarewebsite@gmail.com
+                </a>
+                <button class="copy-button" onclick="copyEmail()">
+                    📋 Copy Email
+                </button>
+            </div>
+        </div>
+    </section>
+    
+     <script>
+        function copyEmail() {
+            const email = 'lifetechcarewebsite@gmail.com';
+            const button = document.querySelector('.copy-button');
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(email).then(function() {
+                // Change button appearance
+                button.textContent = '✓ Copied!';
+                button.classList.add('copied');
+                
+                // Reset button after 2 seconds
+                setTimeout(function() {
+                    button.textContent = '📋 Copy Email';
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(function(err) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = email;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                button.textContent = '✓ Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(function() {
+                    button.textContent = '📋 Copy Email';
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+    
+</body>
+</html>

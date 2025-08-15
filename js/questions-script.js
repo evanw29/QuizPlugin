@@ -179,6 +179,9 @@ jQuery(document).ready(function($) {
 
         submitButton.prop('disabled', true);
 
+        //User feedback
+        formMessage.html('<div>Submitting...</div>');
+
         //Create responses array
         let responses = {};
 
@@ -260,8 +263,9 @@ jQuery(document).ready(function($) {
                 console.log('Submission error:', {
                     status: status,
                     error: error,
-                    xhr: xhr
+                    xhr: xhr.responseText
                 });
+                
                 formMessage.html('<div class="error">An error occurred. Please try again.</div>');
                 submitButton.prop('disabled', false);
             }

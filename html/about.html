@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us</title>
+    <style>
+        :root {
+            --primary-color: #5db1c9;
+            --light-blue: #bee2eb;
+            --dark-blue: #346572;
+            --gold: #f0b74c;
+            --navy: #102f3c;
+            --white: #ffffff;
+            --text-dark: #102f3c;
+            --text-light: #346572;
+            --background-light: #f8fafb;
+            --gradient-primary: linear-gradient(135deg, #5db1c9 0%, #346572 100%);
+            --gradient-accent: linear-gradient(135deg, #bee2eb 0%, #5db1c9 100%);
+            --gradient-gold: linear-gradient(135deg, #f0b74c 0%, #5db1c9 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            overflow-x: hidden;
+            background: var(--white);
+        }
+
+        /* About Hero Section */
+        .about-hero {
+            padding: 60px 0 60px;
+            background: linear-gradient(135deg, var(--white) 0%, var(--background-light) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about-hero::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            left: -20%;
+            width: 40%;
+            height: 80%;
+            background: var(--gradient-accent);
+            border-radius: 50%;
+            opacity: 0.08;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .about-hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .about-hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .about-hero p {
+            font-size: 1.3rem;
+            color: var(--text-light);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            line-height: 1.8;
+        }
+        
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Mission Section */
+        .mission-section {
+            padding: 10px 0;
+            background: var(--white);
+        }
+
+        .mission-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .mission-content h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+        }
+
+        .mission-content p {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .mission-visual {
+            position: relative;
+            height: 400px;
+            background: var(--gradient-accent);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Team Section */
+        .team-section {
+            padding: 80px 0;
+            background: var(--white);
+        }
+
+        .team-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .team-card {
+            background: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(93, 177, 201, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(93, 177, 201, 0.05);
+        }
+
+        .team-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(93, 177, 201, 0.2);
+        }
+
+        .team-photo {
+            height: 250px;
+            background: var(--gradient-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--white);
+            overflow: hidden;
+            position: relative;
+        }
+        
+         .team-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .team-info {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .team-info h4 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .team-role {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .team-info p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 80px 0;
+            background: var(--background-light);
+        }
+
+        .cta-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            text-align: center;
+        }
+
+        .cta-section h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cta-section p {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin-bottom: 2.5rem;
+            line-height: 1.7;
+        }
+
+        .button-primary {
+            padding: 16px 32px;
+            background: var(--gradient-primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(93, 177, 201, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .button-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(93, 177, 201, 0.4);
+        }
+
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .about-hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .about-hero p {
+                font-size: 1.1rem;
+            }
+
+            .mission-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .mission-content h2 {
+                font-size: 2rem;
+            }
+
+            .mission-visual {
+                height: 250px;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .values-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .story-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .about-hero-container,
+            .mission-container,
+            .values-container,
+            .team-container,
+            .story-container,
+            .cta-container {
+                padding: 0 1rem;
+            }
+
+            .about-hero h1 {
+                font-size: 2rem;
+            }
+
+            .mission-content h2,
+            .section-title,
+            .story-section h2,
+            .cta-section h2 {
+                font-size: 1.8rem;
+            }
+
+            .story-stats {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- About Hero Section -->
+    <section class="about-hero">
+        <div class="about-hero-container">
+            <h1>About LifeTech Care</h1>
+            <p>We're dedicated to bridging the gap between healthcare technology and the people who need it most. Our mission is to make healthcare solutions accessible, understandable, and personalized for every individual.</p>
+        </div>
+    </section>
+
+    <!-- Mission Section -->
+    <section class="mission-section">
+        <div class="mission-container">
+            <div class="mission-content">
+                <h2>Our Mission</h2>
+                <p>We believe that everyone deserves access to healthcare technologies that can improve their quality of life. Through our personalized quiz system, we connect individuals with the right healthcare solutions tailored to their specific needs and circumstances.</p>
+                <p></p>
+            </div>
+            <div class="mission-visual">
+                <img id="mission-image" src="https://lifetechcarecanada.ca/wp-content/uploads/2025/07/healthcare-group.jpg">
+            </div>
+        </div>
+    </section>
+    
+    <section class="team-section">
+        <div class="team-container">
+            <div class="section-header">
+                <h2 class="section-title">Meet The Team</h2>
+                <p class="section-subtitle">Our passionate team dedicated to providing expertly catered and curated solutions to you. </p>
+            </div>
+            <div class="team-grid">
+                <div class="team-card">
+
+                </div>
+                <div class="team-card">
+                </div>
+                <div class="team-card">
+            </div>
+        </div>
+    </section>

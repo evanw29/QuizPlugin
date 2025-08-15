@@ -154,15 +154,15 @@ class Quiz_Handler {
                 //New User creation required
                 } else {
                     //Insert personal user data
-                    $user_insert_result = $this->wpdb->insert($this->wpdb->prepare(
+                    $user_insert_result = $this->wpdb->insert(
                         $this->tables['users'],
                         $user_data,
                         array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
-                    ));
+                    );
 
                     //User creation in database failed
-                    if ($user_insert_result == false) {
-                        throw new Exception('Failed to create user');
+                    if ($user_insert_result === false) {
+                        throw new Exception('Failed to create user' . $this->wpdb->last_error);
                     }
 
                     //Get auto-created user_id from db for later use
@@ -235,6 +235,7 @@ class Quiz_Handler {
         //Do not commit if error occurs
         } catch (Exception $e) {
             $this->wpdb->query('ROLLBACK');
+            error_log('Quiz save error: ' . $e->getMessage());
             throw $e;
         }
     }

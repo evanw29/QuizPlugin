@@ -187,6 +187,12 @@ function handle_get_personal_questions() {
 //AJAX handler for form submission
 function handle_quiz_submission() {
 
+    //AJAX Nonce check 
+     if (!check_ajax_referer('quiz_ajax_nonce', 'nonce', false)) {
+        wp_send_json_error('Security check failed. Please refresh the page and try again.');
+        return;
+    }
+
     //Check if answers were answered by user (HTML data has been sent)
     if (!isset($_POST['responses']) || !is_array($_POST['responses'])) {
         wp_send_json_error('No valid responses received');
@@ -225,6 +231,7 @@ function handle_quiz_submission() {
             wp_send_json_error('There was an error saving your responses. Please try again.');
         }
     } catch (Exception $e) {
+        error_log('Quiz submission error: ' . $e->getMessage());
         wp_send_json_error('An error occurred: ' . $e->getMessage());
     }
 }

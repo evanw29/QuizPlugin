@@ -163,7 +163,7 @@ function handle_get_personal_questions() {
                             $input_type = 'tel';
                             $extra_attrs .= ' pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number"';
                         //Password
-                        } elseif ($question->QuestionID == 32) {
+                        } elseif ($question->QuestionID == 37) {
                             $input_type = 'password';
                         }
 
@@ -214,7 +214,7 @@ function handle_quiz_submission() {
 
     try {
         //Question IDs of personal questions in preexisting db
-        $personal_fields = [23, 24, 25, 28, 29, 30, 31, 32];
+        $personal_fields = [23, 24, 25, 28, 29, 30, 31, 37];
         foreach ($personal_fields as $field) {
             if (isset($responses[$field])) {
                 $personal_info[$field] = $responses[$field];

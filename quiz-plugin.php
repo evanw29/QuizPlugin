@@ -162,7 +162,11 @@ function handle_get_personal_questions() {
                         } elseif ($question->QuestionID == 29) {
                             $input_type = 'tel';
                             $extra_attrs .= ' pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number"';
+                        //Password
+                        } elseif ($question->QuestionID == 32) {
+                            $input_type = 'password';
                         }
+
                         ?>
                         <input
                             type="<?php echo $input_type; ?>"
@@ -210,7 +214,7 @@ function handle_quiz_submission() {
 
     try {
         //Question IDs of personal questions in preexisting db
-        $personal_fields = [23, 24, 25, 28, 29, 30, 31];
+        $personal_fields = [23, 24, 25, 28, 29, 30, 31, 32];
         foreach ($personal_fields as $field) {
             if (isset($responses[$field])) {
                 $personal_info[$field] = $responses[$field];
@@ -304,10 +308,11 @@ function handle_quiz_search() {
     $last_name = sanitize_text_field($_POST['lastName']);
     $email = sanitize_email($_POST['email']);
     $phone_number = sanitize_text_field($_POST['phoneNumber']);
+    $password = sanitize_text_field($_POST['password']);
 
     //Create Quiz Search object to handle finding user quizzes
     $search = new Quiz_Search();
-    $results = $search->search_quizzes($last_name,$email, $phone_number);
+    $results = $search->search_quizzes($last_name, $email, $phone_number, $password);
 
     //A successful search is returned through AJAX request, else error message is returned.
     if ($results) {

@@ -188,7 +188,7 @@ jQuery(document).ready(function($) {
         //Gather regular question responses
         $('.question-group:not(.save-data-question)').each(function() {
             const questionId = $(this).data('question-id');
-            const inputs = $(this).find('input:checked, select, input[type="text"], input[type="email"], input[type="date"], input[type="tel"]');
+            const inputs = $(this).find('input:checked, select, input[type="text"], input[type="email"], input[type="date"], input[type="tel"], input[type="password"]');
 
             if (inputs.length) {
                 if (inputs.is(':checkbox')) {

@@ -130,7 +130,7 @@ class Quiz_Handler {
                     'province' => $personal_info[25],
                     'phone_number' => sanitize_text_field($personal_info[29]),
                     'gender' => $personal_info[31],
-                    'password' => password_hash($personal_info[37], PASSWORD_DEFAULT),
+                    'password_hash' => password_hash($personal_info[37], PASSWORD_DEFAULT),
                     'user_type' => 'senior'
                 );
 
@@ -141,11 +141,12 @@ class Quiz_Handler {
                      WHERE UPPER(last_name) = UPPER(%s) 
                      AND UPPER(email) = UPPER(%s)
                      AND phone_number = %s
+                     AND password_hash = %s
                      AND user_type = 'senior'",
                     $user_data['last_name'],
                     $user_data['email'],
                     $user_data['phone_number'],
-                    $user_data['password']
+                    $user_data['password_hash']
                 ));
                 
                 //Previous user found

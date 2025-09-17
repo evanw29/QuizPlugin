@@ -38,6 +38,7 @@ class Quiz_Search {
              WHERE UPPER(last_name) = %s 
              AND UPPER(email) = %s
              AND phone_number = %s
+             AND password_hash = %s
              AND user_type = 'senior'",
             $last_name,
             $email,

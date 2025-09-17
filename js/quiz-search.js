@@ -16,7 +16,7 @@ jQuery(document).ready(function($) {
         const searchResults = $('#search-results');
 
         //Check for input
-        if (!email || !lastName || !phoneNumber || !password) {
+        if (!email || !lastName || !phoneNumber) {
             formMessage.html('<div class="error">Please fill in all fields.</div>');
             return;
         }

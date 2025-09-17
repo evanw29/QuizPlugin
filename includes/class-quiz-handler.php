@@ -77,8 +77,8 @@ class Quiz_Handler {
                     a.AnswerID, a.answer_Text
              FROM {$this->tables['questions']} q
              LEFT JOIN {$this->tables['answers']} a ON q.QuestionID = a.QuestionID
-             WHERE q.QuestionID IN (23, 24, 25, 28, 29, 30, 31, 37)
-             ORDER BY FIELD(q.QuestionID, 23, 30, 24, 25, 28, 29, 31, 37)"
+             WHERE q.QuestionID IN (23, 24, 25, 28, 29, 30, 31, 40)
+             ORDER BY FIELD(q.QuestionID, 23, 30, 24, 25, 28, 29, 31, 40)"
         );
 
         //Structure the data to group answers with their questions
@@ -130,7 +130,7 @@ class Quiz_Handler {
                     'province' => $personal_info[25],
                     'phone_number' => sanitize_text_field($personal_info[29]),
                     'gender' => $personal_info[31],
-                    'password_hash' => password_hash($personal_info[37], PASSWORD_DEFAULT),
+                    'password_hash' => password_hash($personal_info[40], PASSWORD_DEFAULT) ?? "",
                     'user_type' => 'senior'
                 );
 

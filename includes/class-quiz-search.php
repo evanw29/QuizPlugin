@@ -43,7 +43,7 @@ class Quiz_Search {
             $last_name,
             $email,
             $phone_number,
-            password_hash($password, PASSWORD_DEFAULT) ?? ""
+            (!empty($password)) ? password_hash($password, PASSWORD_DEFAULT) : ""
         ));
 
         //No user with matching info found

@@ -33,23 +33,26 @@ class Quiz_Search {
 
         //Find the user using provided info
         $user = $this->wpdb->get_row($this->wpdb->prepare(
-            "SELECT user_id 
+            "SELECT user_id, password_hash
              FROM {$this->tables['users']} 
              WHERE UPPER(last_name) = %s 
              AND UPPER(email) = %s
              AND phone_number = %s
-             AND password_hash = %s
              AND user_type = 'senior'",
             $last_name,
             $email,
-            $phone_number,
-            (!empty($password)) ? password_hash($password, PASSWORD_DEFAULT) : ""
+            $phone_number
         ));
 
         //No user with matching info found
         //Fix: flesh out error messages
         if (!$user) {
             return false;
+        }
+
+        // Verify password
+        if (!empty($password) && !password_verify($password, $user->password_hash)) {
+           return false;
         }
 
         //find all quizzes with matching user_id

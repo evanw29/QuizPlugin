@@ -113,7 +113,7 @@ function display_quiz_search() {
                     </div>
                     <div class="answer-option">
                         <label for="search_password">Password:</label>
-                        <input type="text" id="search_password" name="search_password" class="text-input" required>
+                        <input type="password" id="search_password" name="search_password" class="text-input" required>
                     </div>
                     <button type="button" id="search-quizzes-btn" class="search-button">Search Quizzes</button>
                 </div>

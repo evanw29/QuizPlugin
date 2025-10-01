@@ -27,21 +27,16 @@ class Quiz_Search {
     //Using given identifying info, this function finds all matching quiz rows
     public function search_quizzes($last_name, $email, $phone_number, $password) {
 
-        //Convert to upper to negate case sensitivity
-        $last_name = strtoupper($last_name);
-        $email = strtoupper($email);
+        $quiz_handler = new Quiz_Handler();
+        $blind_index = $quiz_handler->quiz_generate_blind_index($email, $last_name, $phone_number);
 
         //Find the user using provided info
         $user = $this->wpdb->get_row($this->wpdb->prepare(
             "SELECT user_id, password_hash
              FROM {$this->tables['users']} 
-             WHERE UPPER(last_name) = %s 
-             AND UPPER(email) = %s
-             AND phone_number = %s
+             WHERE blind_index = %s
              AND user_type = 'senior'",
-            $last_name,
-            $email,
-            $phone_number
+            $blind_index
         ));
 
         //No user with matching info found

@@ -25,7 +25,7 @@ class Quiz_Search {
     }
 
     //Using given identifying info, this function finds all matching quiz rows
-    public function search_quizzes($last_name, $email, $phone_number) {
+    public function search_quizzes($last_name, $email, $phone_number, $password) {
 
         //Convert to upper to negate case sensitivity
         $last_name = strtoupper($last_name);
@@ -33,7 +33,7 @@ class Quiz_Search {
 
         //Find the user using provided info
         $user = $this->wpdb->get_row($this->wpdb->prepare(
-            "SELECT user_id 
+            "SELECT user_id, password_hash
              FROM {$this->tables['users']} 
              WHERE UPPER(last_name) = %s 
              AND UPPER(email) = %s
@@ -48,6 +48,11 @@ class Quiz_Search {
         //Fix: flesh out error messages
         if (!$user) {
             return false;
+        }
+
+        // Verify password
+        if (!empty($password) && !password_verify($password, $user->password_hash)) {
+           return false;
         }
 
         //find all quizzes with matching user_id
@@ -108,6 +113,10 @@ function display_quiz_search() {
                         <label for="search_phone">Phone Number:</label>
                         <input type="tel" id="search_phone" name="search_phone" class="text-input" 
                                 pattern="[0-9]{10}" title="Please enter a 10-digit phone number" required>
+                    </div>
+                    <div class="answer-option">
+                        <label for="search_password">Password:</label>
+                        <input type="password" id="search_password" name="search_password" class="text-input" required>
                     </div>
                     <button type="button" id="search-quizzes-btn" class="search-button">Search Quizzes</button>
                 </div>

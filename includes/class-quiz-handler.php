@@ -77,8 +77,8 @@ class Quiz_Handler {
                     a.AnswerID, a.answer_Text
              FROM {$this->tables['questions']} q
              LEFT JOIN {$this->tables['answers']} a ON q.QuestionID = a.QuestionID
-             WHERE q.QuestionID IN (23, 24, 25, 28, 29, 30, 31)
-             ORDER BY FIELD(q.QuestionID, 23, 30, 24, 25, 28, 29, 31)"
+             WHERE q.QuestionID IN (23, 24, 25, 28, 29, 30, 31, 40)
+             ORDER BY FIELD(q.QuestionID, 23, 30, 24, 25, 28, 29, 31, 40)"
         );
 
         //Structure the data to group answers with their questions
@@ -130,6 +130,7 @@ class Quiz_Handler {
                     'province' => $personal_info[25],
                     'phone_number' => sanitize_text_field($personal_info[29]),
                     'gender' => $personal_info[31],
+                    'password_hash' => password_hash($personal_info[40], PASSWORD_DEFAULT) ?? "",
                     'user_type' => 'senior'
                 );
 
@@ -140,10 +141,12 @@ class Quiz_Handler {
                      WHERE UPPER(last_name) = UPPER(%s) 
                      AND UPPER(email) = UPPER(%s)
                      AND phone_number = %s
+                     AND password_hash = %s
                      AND user_type = 'senior'",
                     $user_data['last_name'],
                     $user_data['email'],
-                    $user_data['phone_number']
+                    $user_data['phone_number'],
+                    $user_data['password_hash']
                 ));
                 
                 //Previous user found
@@ -157,7 +160,7 @@ class Quiz_Handler {
                     $user_insert_result = $this->wpdb->insert(
                         $this->tables['users'],
                         $user_data,
-                        array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+                        array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
                     );
 
                     //User creation in database failed

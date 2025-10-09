@@ -11,6 +11,7 @@ jQuery(document).ready(function($) {
         const email = $('#search_email').val().trim();
         const lastName = $('#search_last_name').val().trim();
         const phoneNumber = $('#search_phone').val().trim();
+        const password = $('#search_password').val().trim();
         const formMessage = $('#form-message');
         const searchResults = $('#search-results');
 
@@ -28,7 +29,7 @@ jQuery(document).ready(function($) {
         console.log('AJAX request:', {
             url: quizAjax.ajaxurl,
             nonce: quizAjax.nonce,
-            data: {email, lastName, phoneNumber}
+            data: {email, lastName, phoneNumber, password}
         });
 
         //AJAX request
@@ -40,7 +41,8 @@ jQuery(document).ready(function($) {
                 nonce: quizAjax.nonce,
                 email: email,
                 lastName: lastName,
-                phoneNumber: phoneNumber
+                phoneNumber: phoneNumber,
+                password: password
             },
             success: function(response) {
                 console.log('Search response:', response);

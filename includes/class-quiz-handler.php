@@ -123,16 +123,16 @@ class Quiz_Handler {
             //If personal info is provided, save user data
             if ($personal_info !== null) {
                 $user_data = array(
-                    'first_name' => $this->quiz_encrypt_data(sanitize_text_field($personal_info[23])),
-                    'last_name' => $this->quiz_encrypt_data(sanitize_text_field($personal_info[30])),
-                    'email' => $this->quiz_encrypt_data(sanitize_email($personal_info[28])),
+                    'first_name' => $this->quiz_encrypt_data((string)sanitize_text_field($personal_info[23])),
+                    'last_name' => $this->quiz_encrypt_data((string)sanitize_text_field($personal_info[30])),
+                    'email' => $this->quiz_encrypt_data((string)sanitize_email($personal_info[28])),
                     'dob' => $personal_info[24],
-                    'province' => $this->quiz_encrypt_data($personal_info[25]),
-                    'phone_number' => $this->quiz_encrypt_data(sanitize_text_field($personal_info[29])),
-                    'gender' => $this->quiz_encrypt_data($personal_info[31]),
-                    'password_hash' => password_hash($personal_info[40], PASSWORD_DEFAULT) ?? "",
+                    'province' => $this->quiz_encrypt_data((string)$personal_info[25]),
+                    'phone_number' => $this->quiz_encrypt_data((string)sanitize_text_field($personal_info[29])),
+                    'gender' => $this->quiz_encrypt_data((string)$personal_info[31]),
+                    'password_hash' => password_hash((string)$personal_info[40], PASSWORD_DEFAULT) ?? "",
                     'user_type' => 'senior',
-                    'blind_index' => $this->quiz_generate_blind_index(sanitize_email($personal_info[28]), sanitize_text_field($personal_info[30]), sanitize_text_field($personal_info[29]))
+                    'blind_index' => $this->quiz_generate_blind_index((string)sanitize_email($personal_info[28]), (string)sanitize_text_field($personal_info[30]), (string)sanitize_text_field($personal_info[29]))
                 );
 
                 //Check if user already exists in database, existing_user will be Null if no user with important fields is found
@@ -348,11 +348,11 @@ class Quiz_Handler {
     }
 
     public function quiz_encrypt_data(string $field): string|false {
-        if (!file_exists(PRIVATE_KEY)) {
+        if (!file_exists(PRIVATE_KEY_FILE)) {
             error_log("Encryption key file not found");
             return false;
         }
-        $key_b64 = trim(file_get_contents(PRIVATE_KEY));
+        $key_b64 = trim(file_get_contents(PRIVATE_KEY_FILE));
         $key = sodium_base642bin($key_b64, SODIUM_BASE64_VARIANT_ORIGINAL); // Decode the key
         $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES); // Generate a different 24-bit nonce for every message
         $encrypted = sodium_crypto_secretbox($field, $nonce, $key); // The actual encryption
@@ -369,11 +369,11 @@ class Quiz_Handler {
 
     // Not used anywhere yet
     public function quiz_decrypt_data(string $encrypted_field): string|false {
-        if (!file_exists(PRIVATE_KEY)) {
+        if (!file_exists(PRIVATE_KEY_FILE)) {
             error_log("Encryption key file not found");
             return false;
         }
-        $key_b64 = trim(file_get_contents(PRIVATE_KEY));
+        $key_b64 = trim(file_get_contents(PRIVATE_KEY_FILE));
         $key = sodium_base642bin($key_b64, SODIUM_BASE64_VARIANT_ORIGINAL);
         $decoded_field = sodium_base642bin($encrypted_field, SODIUM_BASE64_VARIANT_ORIGINAL);
         $nonce = mb_substr($decoded_field, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES, '8bit');
@@ -389,17 +389,21 @@ class Quiz_Handler {
 
     public function quiz_generate_blind_index(string $email, string $last_name, string $phone_number): string|false {
         $combined = $email . $last_name . $phone_number;
-        if (!file_exists(BLIND_INDEX_KEY)) {
+        if (!file_exists(BLIND_INDEX_KEY_FILE)) {
             error_log("Blind index key file not found");
             return false;
         }
-        $key_b64 = trim(file_get_contents(BLIND_INDEX_KEY));
+        $key_b64 = trim(file_get_contents(BLIND_INDEX_KEY_FILE));
         $key = sodium_base642bin($key_b64, SODIUM_BASE64_VARIANT_ORIGINAL);
-        $blind_index = sodium_crypto_auth($combined, $key);
+        $blind_index = hash_hmac('sha256', $combined, $key, true);
         $blind_index_b64 = sodium_bin2base64($blind_index, SODIUM_BASE64_VARIANT_ORIGINAL);
 
         sodium_memzero($key_b64);
         sodium_memzero($key);
+        sodium_memzero($email);
+        sodium_memzero($last_name);
+        sodium_memzero($phone_number);
+        sodium_memzero($combined);
         return $blind_index_b64;
     }
 }

@@ -141,29 +141,34 @@ jQuery(document).ready(function($) {
 
     //Handle save data question visibility and personal info loading
     const saveDataRadios = $('input[name="save_data"]');
+    // Load the personal info section as soon as possible
+    const personalInfoSection = $('#personal-info-section');
+    let cachedPersonalSection = null;
+
+    if (!cachedPersonalSection) {
+        $.ajax({
+            url: quizAjax.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'get_personal_questions',
+                nonce: quizAjax.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    cachedPersonalSection = response.data.html;
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Ajax error:', error);
+                $('#form-message').html('<div class="error">Failed to load personal information form. Please try again.</div>');
+            }
+        });
+    }
+
     saveDataRadios.on('change', function() {
         const saveData = $(this).val() === 'yes';
-        const personalInfoSection = $('#personal-info-section');
-        
-        //Save data is selected
-        if (saveData) {
-            $.ajax({
-                url: quizAjax.ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'get_personal_questions',
-                    nonce: quizAjax.nonce
-                },
-                success: function(response) {
-                    if (response.success) {
-                        personalInfoSection.html(response.data.html).slideDown();
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Ajax error:', error);
-                    $('#form-message').html('<div class="error">Failed to load personal information form. Please try again.</div>');
-                }
-            });
+        if (saveData && cachedPersonalSection) {
+            personalInfoSection.html(cachedPersonalSection).slideDown();
         } else {
             personalInfoSection.slideUp().find('input').val('');
         }

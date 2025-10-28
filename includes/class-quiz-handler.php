@@ -136,7 +136,7 @@ class Quiz_Handler {
                 );
 
                 //Check if user already exists in database, existing_user will be Null if no user with important fields is found
-                // With the encrypted data, the hash of the search inputs is compared to the hash of those fields when creating a user
+                // With encrypted data, users are found using the blind index (hash of the three search inputs)
                 $existing_user = $this->wpdb->get_row($this->wpdb->prepare(
                     "SELECT user_id 
                      FROM {$this->tables['users']} 

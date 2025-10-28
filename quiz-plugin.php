@@ -299,7 +299,7 @@ function display_recommendations_function($atts) {
     return ob_get_clean();
 }
 
-//This function handles the search previous user quizzes functionality. Users input their email, last name, phone number, and possibly password to see a 
+//This function handles the search previous user quizzes functionality. Users input their email, last name, phone number, and password to see a 
 //populated table of their previous quiz results
 function handle_quiz_search() {
     //check_ajax_referer('quiz_ajax_nonce', 'nonce');
